@@ -16,6 +16,8 @@ import clinicalRoutes from './routes/clinical.routes';
 import billingRoutes from './routes/billing.routes';
 import switchRoutes from './routes/switch.routes';
 import inventoryRoutes from './routes/inventory.routes';
+import subscriptionRoutes from './routes/subscription.routes';
+import paymentRoutes from './routes/payment.routes';
 import healthRoutes from './routes/health.routes';
 
 const app = express();
@@ -40,6 +42,8 @@ app.use('/api/v1/practices/:practiceId/clinical', clinicalRoutes);
 app.use('/api/v1/practices/:practiceId/billing', billingRoutes);
 app.use('/api/v1/practices/:practiceId/switch', switchRoutes);
 app.use('/api/v1/practices/:practiceId/inventory', inventoryRoutes);
+app.use('/api/v1/practices/:practiceId/subscriptions', subscriptionRoutes);
+app.use('/api/v1/practices/:practiceId/payments', paymentRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -137,9 +137,13 @@ export type AuditAction =
   | 'billing.invoice_create'
   | 'switch.claim_submit'
   | 'payment.webhook_received'
+  | 'payment.method_tokenized'
   | 'entitlement.changed'
   | 'ai_job.create'
-  | 'ai_job.review';
+  | 'ai_job.review'
+  | 'subscription.activate'
+  | 'subscription.activate_free'
+  | 'subscription.cancel';
 
 export interface PaginatedResponse<T> {
   data: T[];
