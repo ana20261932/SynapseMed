@@ -1,0 +1,21 @@
+{
+  "name": "synapsemed",
+  "version": "0.1.0",
+  "private": true,
+  "description": "South African modular medical practice management platform",
+  "scripts": {
+    "dev:api": "npm run dev --prefix apps/api",
+    "dev:web": "npm run dev --prefix apps/web",
+    "test:api": "npm test --prefix apps/api",
+    "lint:api": "npm run lint --prefix apps/api",
+    "build:api": "npm run build --prefix apps/api",
+    "build:web": "npm run build --prefix apps/web"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  }
+}

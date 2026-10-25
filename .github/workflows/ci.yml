@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  api:
+    name: API — typecheck + test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-bin-links
+      - run: npx prisma generate
+        env:
+          DATABASE_URL: "file:./test.db"
+      - run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: "file:./test.db"
+      - run: npx tsc --noEmit
+        env:
+          DATABASE_URL: "file:./test.db"
+      - run: npx jest --passWithNoTests
+        env:
+          NODE_ENV: test
+          DATABASE_URL: "file:./test.db"
+          JWT_SECRET: "ci-test-secret"
+          USE_SYNTHETIC_DATA: "true"
+          ENABLE_REAL_CLAIM_SUBMISSION: "false"
+          ENABLE_REAL_PAYMENTS: "false"
+
+  web:
+    name: Web — typecheck + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-bin-links
+      - run: npx tsc --noEmit
+      - run: npx next build
+        env:
+          NEXT_PUBLIC_API_URL: "http://localhost:8080"

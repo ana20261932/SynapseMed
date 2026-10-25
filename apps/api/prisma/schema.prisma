@@ -1,0 +1,589 @@
+// SynapseMed — Prisma schema
+// Database: SQLite for local/dev. Change provider + URL to postgresql for staging/prod.
+// Run: npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ── Identity ──────────────────────────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  phone         String?
+  emailVerified Boolean  @default(false)
+  status        String   @default("active")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  memberships         PracticeMembership[]
+  professionalProfile ProfessionalProfile?
+  auditEvents         AuditEvent[]
+  refreshTokens       RefreshToken[]
+  aiJobs              AiJob[]
+  notifications       Notification[]
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  token     String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+}
+
+// ── Organisation & Practice (tenant boundary) ─────────────────────────────────
+
+model Organisation {
+  id        String   @id @default(uuid())
+  name      String
+  type      String
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  practices Practice[]
+}
+
+model Practice {
+  id             String       @id @default(uuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
+  name           String
+  phone          String?
+  email          String?
+  address        String?
+  timezone       String       @default("Africa/Johannesburg")
+  status         String       @default("active")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  memberships          PracticeMembership[]
+  moduleEntitlements   ModuleEntitlement[]
+  patients             Patient[]
+  appointments         Appointment[]
+  encounters           Encounter[]
+  documents            Document[]
+  specialtyConfig      SpecialtyConfiguration[]
+  subscriptions        Subscription[]
+  pmsInvoices          PmsInvoice[]
+  switchConnection     SwitchProviderConnection?
+  switchInvoices       SwitchInvoice[]
+  inventoryItems       InventoryItem[]
+  auditEvents          AuditEvent[]
+  practiceNumbers      PracticeNumber[]
+  extensionEntitlements PracticeExtensionEntitlement[]
+}
+
+model PracticeMembership {
+  id         String    @id @default(uuid())
+  practiceId String
+  practice   Practice  @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       String
+  status     String    @default("invited")
+  invitedAt  DateTime  @default(now())
+  acceptedAt DateTime?
+  revokedAt  DateTime?
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([practiceId, userId])
+}
+
+// ── Professional profile ──────────────────────────────────────────────────────
+
+model ProfessionalProfile {
+  id                 String    @id @default(uuid())
+  userId             String    @unique
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  discipline         String
+  councilBody        String?
+  registrationNumber String?
+  registrationStatus String    @default("unverified")
+  verificationSource String?
+  verificationNotes  String?
+  verifiedAt         DateTime?
+  expiresAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model PracticeNumber {
+  id                 String   @id @default(uuid())
+  practiceId         String
+  practice           Practice @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  numberType         String
+  value              String
+  issuer             String?
+  verificationStatus String   @default("unverified")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+// ── Module entitlements ───────────────────────────────────────────────────────
+
+model ModuleEntitlement {
+  id         String    @id @default(uuid())
+  practiceId String
+  practice   Practice  @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  moduleKey  String
+  status     String    @default("inactive")
+  enabledAt  DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([practiceId, moduleKey])
+}
+
+// ── Patients ──────────────────────────────────────────────────────────────────
+
+model Patient {
+  id               String    @id @default(uuid())
+  practiceId       String
+  practice         Practice  @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  firstName        String
+  lastName         String
+  dateOfBirth      DateTime?
+  gender           String?
+  idNumber         String?
+  phone            String?
+  email            String?
+  address          String?
+  medicalAidScheme String?
+  medicalAidNumber String?
+  status           String    @default("active")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  consents     PatientConsent[]
+  appointments Appointment[]
+  encounters   Encounter[]
+  documents    Document[]
+}
+
+model PatientConsent {
+  id           String    @id @default(uuid())
+  patientId    String
+  patient      Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  purpose      String
+  scope        String?
+  status       String    @default("granted")
+  grantedAt    DateTime  @default(now())
+  withdrawnAt  DateTime?
+  expiresAt    DateTime?
+  evidenceRef  String?
+}
+
+// ── Scheduling ────────────────────────────────────────────────────────────────
+
+model Appointment {
+  id                 String    @id @default(uuid())
+  practiceId         String
+  practice           Practice  @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  patientId          String
+  patient            Patient   @relation(fields: [patientId], references: [id])
+  practitionerUserId String?
+  appointmentType    String?
+  location           String?
+  startsAt           DateTime
+  endsAt             DateTime
+  status             String    @default("booked")
+  notes              String?
+  reminderSent       Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  encounter Encounter?
+}
+
+// ── Clinical ──────────────────────────────────────────────────────────────────
+
+model Encounter {
+  id                 String       @id @default(uuid())
+  practiceId         String
+  practice           Practice     @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  patientId          String
+  patient            Patient      @relation(fields: [patientId], references: [id])
+  appointmentId      String?      @unique
+  appointment        Appointment? @relation(fields: [appointmentId], references: [id])
+  practitionerUserId String?
+  clinicalDate       DateTime     @default(now())
+  status             String       @default("in_progress")
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  clinicalNotes ClinicalNote[]
+  prescriptions Prescription[]
+}
+
+model ClinicalNote {
+  id           String    @id @default(uuid())
+  encounterId  String
+  encounter    Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+  authorUserId String
+  status       String    @default("draft")
+  content      String
+  aiGenerated  Boolean   @default(false)
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  signedAt     DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Prescription {
+  id               String    @id @default(uuid())
+  encounterId      String
+  encounter        Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+  prescriberUserId String
+  status           String    @default("draft")
+  items            String
+  aiGenerated      Boolean   @default(false)
+  reviewedBy       String?
+  reviewedAt       DateTime?
+  signedAt         DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+// ── Documents ─────────────────────────────────────────────────────────────────
+
+model Document {
+  id             String    @id @default(uuid())
+  practiceId     String
+  practice       Practice  @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  patientId      String?
+  patient        Patient?  @relation(fields: [patientId], references: [id])
+  encounterId    String?
+  objectKey      String
+  fileName       String
+  mimeType       String
+  classification String?
+  retentionPolicy String   @default("standard")
+  uploadedBy     String
+  createdAt      DateTime  @default(now())
+}
+
+// ── Specialty configuration ───────────────────────────────────────────────────
+
+model SpecialtyConfiguration {
+  id         String   @id @default(uuid())
+  practiceId String
+  practice   Practice @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  specialty  String
+  settings   String   @default("{}")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([practiceId, specialty])
+}
+
+// ── Extensions ────────────────────────────────────────────────────────────────
+
+model Extension {
+  id           String   @id @default(uuid())
+  publisherId  String
+  name         String
+  slug         String   @unique
+  version      String
+  description  String?
+  permissions  String   @default("[]")
+  compatibility String?
+  price        Float    @default(0)
+  billingModel String   @default("monthly")
+  reviewState  String   @default("pending")
+  manifestJson String   @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  practiceEntitlements PracticeExtensionEntitlement[]
+}
+
+model PracticeExtensionEntitlement {
+  id          String    @id @default(uuid())
+  practiceId  String
+  practice    Practice  @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  extensionId String
+  extension   Extension @relation(fields: [extensionId], references: [id])
+  status      String    @default("inactive")
+  activatedAt DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([practiceId, extensionId])
+}
+
+// ── Subscription & PMS billing ────────────────────────────────────────────────
+
+model SubscriptionPlan {
+  id            String   @id @default(uuid())
+  name          String   @unique
+  description   String?
+  priceZar      Float
+  billingPeriod String   @default("monthly")
+  maxUsers      Int?
+  featureFlags  String   @default("[]")
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id                 String           @id @default(uuid())
+  practiceId         String
+  practice           Practice         @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  planId             String
+  plan               SubscriptionPlan @relation(fields: [planId], references: [id])
+  status             String           @default("active")
+  providerRef        String?
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelledAt        DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  pmsInvoices PmsInvoice[]
+}
+
+model PaymentMethodToken {
+  id           String   @id @default(uuid())
+  practiceId   String
+  providerName String
+  token        String
+  last4        String?
+  brand        String?
+  expiryMonth  Int?
+  expiryYear   Int?
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model PaymentEvent {
+  id              String   @id @default(uuid())
+  practiceId      String
+  providerEventId String   @unique
+  providerName    String
+  eventType       String
+  status          String
+  amountZar       Float
+  currency        String   @default("ZAR")
+  rawPayload      String?
+  reconciled      Boolean  @default(false)
+  reconciledAt    DateTime?
+  createdAt       DateTime @default(now())
+}
+
+model PmsInvoice {
+  id             String        @id @default(uuid())
+  practiceId     String
+  practice       Practice      @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  subscriptionId String?
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  invoiceNumber  String        @unique
+  status         String        @default("draft")
+  amountZar      Float
+  vatZar         Float         @default(0)
+  periodStart    DateTime
+  periodEnd      DateTime
+  issuedAt       DateTime?
+  paidAt         DateTime?
+  createdAt      DateTime      @default(now())
+
+  lines PmsInvoiceLine[]
+}
+
+model PmsInvoiceLine {
+  id           String     @id @default(uuid())
+  invoiceId    String
+  invoice      PmsInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description  String
+  quantity     Int        @default(1)
+  unitPriceZar Float
+  totalZar     Float
+}
+
+// ── Switch billing (completely separate ledger) ───────────────────────────────
+
+model SwitchProviderConnection {
+  id               String   @id @default(uuid())
+  practiceId       String   @unique
+  practice         Practice @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  providerName     String
+  environment      String   @default("mock")
+  connectionStatus String   @default("not_connected")
+  credentialRef    String?
+  contractApproved Boolean  @default(false)
+  approvedAt       DateTime?
+  suspendedAt      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  usageEvents SwitchUsageEvent[]
+  feeRules    SwitchFeeRule[]
+  invoices    SwitchInvoice[]
+}
+
+model SwitchUsageEvent {
+  id             String                   @id @default(uuid())
+  connectionId   String
+  connection     SwitchProviderConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  isMock         Boolean                  @default(true)
+  eventType      String
+  providerRef    String?
+  status         String                   @default("simulated")
+  idempotencyKey String                   @unique
+  payloadRef     String?
+  providerFeeZar Float                    @default(0)
+  platformFeeZar Float                    @default(0)
+  reversedAt     DateTime?
+  createdAt      DateTime                 @default(now())
+}
+
+model SwitchFeeRule {
+  id             String                   @id @default(uuid())
+  connectionId   String
+  connection     SwitchProviderConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  feeType        String
+  contractSource String
+  rateZar        Float
+  effectiveFrom  DateTime
+  effectiveTo    DateTime?
+  createdAt      DateTime                 @default(now())
+}
+
+model SwitchInvoice {
+  id                    String                   @id @default(uuid())
+  connectionId          String
+  connection            SwitchProviderConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  practiceId            String
+  practice              Practice                 @relation(fields: [practiceId], references: [id])
+  invoiceNumber         String                   @unique
+  status                String                   @default("draft")
+  totalProviderFeesZar  Float                    @default(0)
+  totalPlatformFeesZar  Float                    @default(0)
+  totalZar              Float
+  vatZar                Float                    @default(0)
+  periodStart           DateTime
+  periodEnd             DateTime
+  issuedAt              DateTime?
+  paidAt                DateTime?
+  createdAt             DateTime                 @default(now())
+
+  lines SwitchInvoiceLine[]
+}
+
+model SwitchInvoiceLine {
+  id           String        @id @default(uuid())
+  invoiceId    String
+  invoice      SwitchInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description  String
+  quantity     Int           @default(1)
+  unitPriceZar Float
+  totalZar     Float
+  lineType     String
+}
+
+// ── Inventory ─────────────────────────────────────────────────────────────────
+
+model InventoryItem {
+  id                String   @id @default(uuid())
+  practiceId        String
+  practice          Practice @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  sku               String
+  name              String
+  description       String?
+  unit              String   @default("unit")
+  quantity          Int      @default(0)
+  lowStockThreshold Int      @default(5)
+  batchTracked      Boolean  @default(false)
+  expiryTracked     Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  movements StockMovement[]
+
+  @@unique([practiceId, sku])
+}
+
+model StockMovement {
+  id           String        @id @default(uuid())
+  itemId       String
+  item         InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  quantity     Int
+  reason       String
+  authorUserId String
+  batchNumber  String?
+  expiryDate   DateTime?
+  notes        String?
+  createdAt    DateTime      @default(now())
+}
+
+// ── AI jobs ───────────────────────────────────────────────────────────────────
+
+model AiJob {
+  id            String    @id @default(uuid())
+  requestedBy   String
+  user          User      @relation(fields: [requestedBy], references: [id])
+  practiceId    String
+  purpose       String
+  provider      String    @default("mock")
+  model         String?
+  inputRef      String?
+  outputRef     String?
+  consentStatus String    @default("not_required")
+  status        String    @default("queued")
+  reviewRequired Boolean  @default(true)
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  costUnits     Float?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ── Audit ─────────────────────────────────────────────────────────────────────
+
+model AuditEvent {
+  id            String    @id @default(uuid())
+  actorId       String?
+  actor         User?     @relation(fields: [actorId], references: [id])
+  practiceId    String?
+  practice      Practice? @relation(fields: [practiceId], references: [id])
+  action        String
+  resourceType  String?
+  resourceId    String?
+  result        String    @default("success")
+  ipAddress     String?
+  correlationId String?
+  metadata      String?
+  createdAt     DateTime  @default(now())
+}
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+model Notification {
+  id           String    @id @default(uuid())
+  recipientId  String
+  recipient    User      @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  channel      String
+  template     String
+  status       String    @default("pending")
+  sentAt       DateTime?
+  errorMessage String?
+  createdAt    DateTime  @default(now())
+}
