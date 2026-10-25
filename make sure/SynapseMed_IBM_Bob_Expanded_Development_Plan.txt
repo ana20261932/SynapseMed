@@ -1,0 +1,446 @@
+# SynapseMed — Expanded IBM Bob Build Plan and Free-Tier Toolkit
+
+**Purpose:** Extend SynapseMed into a South African multi-tenant medical practice management system with configurable clinical forms, a unified patient timeline, medical-aid billing, a simulated claims switch, AI-assisted document workflows, backups, and an IBM Cloud deployment path.
+
+**Status:** This is a development specification and a coding-agent prompt, not a completed or production-ready medical application, legal opinion, production deployment, switch connection, or compliance certification.
+
+**Assumptions:** The existing app uses Next.js/React/TypeScript, Node.js, and MongoDB. IBM Bob is the coding assistant. Adapt to the actual repository after inspecting it; do not force a rewrite.
+
+## 1. Non-negotiable product and safety rules
+
+1. Start with synthetic/demo records only. Do not upload identifiable patient files to IBM Bob, public AI tools, demo environments, issue trackers, logs, or unapproved storage.
+2. Build a clearly labelled simulated medical-aid switch first. Never imply that a real claim has been submitted until an authorised switch integration has returned a genuine response.
+3. AI output is a draft. A qualified clinician must review clinical content and an authorised billing user must review claims before any record or claim is committed or submitted.
+4. Determine tenant access from the authenticated user's server-side membership and permissions. **Do not trust an `X-Tenant-ID` header by itself** as proof of tenant access.
+5. Keep audit history for sensitive record reads, writes, exports, AI generation/review, access changes, invoices, and claims. Avoid writing clinical content or secrets into logs.
+6. Keep PMS subscription billing separate from medical-aid switch fees. Never store raw card numbers or CVV; use a tokenised payment provider if subscriptions are added.
+7. Do not describe the product as “POPIA compliant” or “HIPAA compliant” because a prompt says so. Compliance requires a proper legal, privacy, security, operational, and contractual assessment.
+8. Verify IBM Cloud plan, quota, billing, service region, service-specific data location, and retention before provisioning. A tool being listed in IBM Cloud Catalog does not mean it is permanently free or appropriate for live health data.
+9. Do not put encryption keys, API keys, MongoDB credentials, service credentials, or medical-aid switch credentials into Git, client bundles, test fixtures, or `.env.example` values.
+10. Use AI and hosted IBM services with synthetic or appropriately de-identified content until privacy/legal review, contractual terms, service region and data-processing details have been approved for the intended patient data.
+
+## 2. Product features to build
+
+### A. Practice administration
+
+- Multiple practices/tenants and branches.
+- Staff accounts, provider profiles, roles, permissions, and practice settings.
+- Configurable practitioner types and specialties rather than a doctor-only design.
+- Patient registration, medical-aid membership details, contact details, patient search, appointments and appointment statuses.
+- South African context: `countryCode = ZA`, default display timezone `Africa/Johannesburg`, configurable date/number formatting, and South African address/contact formats.
+
+### B. Template-driven clinical encounter canvas
+
+Build `ClinicalEncounterCanvas` using the existing Next.js App Router, TypeScript, and existing UI/component conventions (Tailwind only if already in the project or approved for addition).
+
+- Split-screen workspace with an editable clinical note on the left and an “AI Draft Insights” panel on the right.
+- Encounter templates that can be chosen by specialty/use case, e.g. general consultation, paediatrics, chronic disease review, dental, physiotherapy, psychology, and optometry. These are sample template categories, not a claim that every profession has the same rules.
+- Template versioning: a saved encounter records the template version used so that older encounters remain interpretable after a template changes.
+- Example form areas: Chief Complaint, History, Objective/Vitals, Examination, Assessment, Plan, Medicines/Allergies, Referrals, and Follow-up. Make sections configurable.
+- Draft autosave with visible save state, safe retry, and no loss of unsaved text when another panel fails.
+- An explicit `Verify and Save to Patient Timeline` action. AI draft suggestions must not silently write to a signed/final clinical record.
+- Accessible keyboard navigation, loading states, validation errors, unsaved-change warning and responsive layout.
+
+### C. Unified patient encounter timeline
+
+Create a chronological patient feed showing permitted events such as appointments, encounters, clinical notes, uploaded documents, referrals, prescriptions, claim statuses and payment/invoice events. Each event must have a timestamp, type, source reference, tenant scope and permission check. Display timestamps for users in `Africa/Johannesburg` while storing timestamps consistently (UTC recommended).
+
+Do not disclose a claim or billing event to clinical users who do not have permission to view it. Timeline aggregation must not bypass the normal authorisation rules of each source module.
+
+### D. South African billing and claims
+
+- Configurable service catalogue and versioned tariffs.
+- A source-approved/current ICD-10 lookup dataset and documented data licence; do not invent or hardcode clinical coding rules.
+- Invoice lines with explicit medical-aid target amount, patient co-payment, adjustments and payment allocations. Amounts must use decimal-safe money handling (integer cents or an approved decimal type), never JavaScript binary floating-point arithmetic as the sole financial representation.
+- Claim lifecycle: `draft -> validated -> awaiting_approval -> queued -> simulated_submitted -> response_received -> accepted/rejected/queried -> corrected/resubmitted`.
+- Idempotency keys, duplicate-claim checks, claim event history, timeout handling, reconciliation and exportable reports.
+- Show clearly that all demo responses are simulated.
+- Test fixtures should deterministically cover approved, rejected (e.g. synthetic invalid membership or missing/invalid code), queried/pending, duplicate, timeout and retry scenarios. Random approval percentages may be used only in a clearly labelled demo, not in unit tests or real billing logic.
+- Do not assume every medical-aid scheme has the same rules or that one universal open-source switch works in South Africa.
+
+### E. AI medical-document assistant via watsonx.ai
+
+Provide an `AIProvider` interface, with a mock provider as the default. Add an IBM watsonx.ai provider behind a server-side adapter only after credentials, region and account access are configured.
+
+Allowed initial workflows:
+- Summarise a synthetic/de-identified uploaded document with traceable source references.
+- Draft structured clinical-note sections for clinician review.
+- Extract candidate fields from medical documents and show confidence/uncertainty.
+- Identify missing or inconsistent claim fields as suggestions; do not decide cover, coverage or final liability.
+- Suggest an ICD-10 search term/category for a human to review; do not automatically finalise a diagnosis or claim code.
+
+Implementation controls:
+- Keep all provider calls server-side. Never send keys or patient payloads from the browser directly to watsonx.ai.
+- Use an allowlisted request schema and structured data minimisation. Regex-based redaction alone is not a reliable de-identification method. Detect/review direct identifiers, omit nonessential fields, and retain a safe source-to-result link locally.
+- Treat uploaded text as untrusted data, not instructions. Defend against prompt injection and file-borne instructions.
+- Store provider, model ID, prompt/template version, timestamp, source document references, error state, and human-review state. Do not log raw prompts or clinical text by default.
+- Require human approval before committing AI-generated fields into an encounter or claim.
+- Handle timeouts, rate limits, provider errors, model changes, unavailable region, and token limits. Always provide a manual workflow when AI is unavailable.
+- Pin generation settings only after testing; a low temperature does not prevent hallucinations or make outputs clinically safe.
+- Load actual base endpoint, API version and model ID from the current IBM developer-access page/account and supported-model list. Do not hardcode placeholder domains such as `https://ibm.com` as an API endpoint or assume that a particular model ID remains available.
+
+### F. Open-source concepts to adapt carefully
+
+- **OpenEMR-inspired:** configurable, form-driven encounter documentation and mature practice workflows.
+- **Bahmni-inspired:** keep modules and state independent enough that a billing UI error does not erase clinical note drafts. Begin with a modular monolith, not a collection of microservices.
+- **Medplum-inspired:** API-first domain concepts and a clean, chronological patient timeline.
+
+Adapt the architectural ideas and interaction patterns; do not copy source code or assets without reviewing each project's licence and attribution obligations. Evaluate OpenEMR as a possible ready-made product separately, noting that its own stack/licensing and South African integration fit may differ from this app.
+
+## 3. IBM Cloud free-tier and trial toolkit
+
+Free allowances and product availability change. The allowances below are the values shown in the IBM documentation pages linked here when this plan was prepared (25 October 2026). Confirm the current catalogue, region and costs in your own account before provisioning.
+
+| IBM service/tool | How SynapseMed could use it | Current free / trial notes | Recommendation |
+|---|---|---|---|
+| **IBM watsonx.ai Free Toolbox** | Prototype document summaries, structured draft notes, text extraction and prompt tests using synthetic/de-identified examples | IBM lists up to 300,000 foundation-model tokens/month, 20 compute usage hours/month, and text extraction for up to 100 documents/month in its Free Toolbox playground. Model/feature access and locale availability can differ; production/model inference may incur charges. [IBM pricing](https://www.ibm.com/products/watsonx-ai/pricing) | **Use first for AI prototyping.** Keep AI disabled or mocked by default in local tests. Do not assume free limits cover live production traffic. |
+| **watsonx.ai Studio Lite** | Optional data-science/ML experimentation | IBM docs describe a Lite plan with one instance per IBM Cloud account, one user and 10 compute usage hours/month. [IBM plan docs](https://www.ibm.com/docs/en/watsonx/saas?topic=studio-watsonxai-plans) | Optional; not required to run the Next.js app or call watsonx.ai. |
+| **IBM watsonx.data Lite** | A separate analytics/lakehouse sandbox for aggregated, synthetic claim volumes or de-identified operational metrics | Lite has a 500 Resource Unit limit and a 30-day time limit (first limit reached); IBM says Lite is not for production and can be removed. [IBM plans](https://www.ibm.com/docs/en/watsonxdata/saas?topic=services-watsonxdata-plans) | **Optional experiment only.** Do not use it as the core operational database or for production patient records. “watsonxds” is interpreted here as watsonx.data; watsonx.ai is included separately. |
+| **IBM Cloud Code Engine** | Host a demo container/API and run on-demand jobs such as synthetic-data seeding or backup tests | Current documented always-free monthly allocation: 100,000 vCPU-seconds, 200,000 GB-seconds, and 100,000 incoming HTTP requests. Charges apply above allowances. Scaling to zero reduces idle compute charges. [IBM pricing](https://cloud.ibm.com/docs/codeengine?topic=codeengine-pricing) | Good first IBM Cloud runtime for a demo. Keep min scale at zero where appropriate; monitor build, job, memory and request usage. |
+| **IBM Cloud Object Storage (Standard Smart Tier Free Tier)** | Store synthetic demo documents, encrypted backup test artefacts and test uploads through a provider-neutral file-storage adapter | Up to 5 GB storage, 2,000 Class A requests, 20,000 Class B requests, 10 GB retrieval and 5 GB egress each month for 12 months; above allowances or after 12 months can be billed. [IBM details](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-faq-provision) | Use for controlled demos and backup tests, not as the only backup for production. Apply private bucket policy, least privilege, retention and restore tests. |
+| **IBM Cloudant Lite** | Optional prototype for a small document-oriented dataset or a proof-of-concept where CouchDB-style APIs are valuable | Free Lite plan lists 1 GB storage, fixed throughput and one Lite instance per account; it is for evaluation/testing. [IBM plans](https://cloud.ibm.com/docs/Cloudant?topic=Cloudant-ibm-cloud-public) | **Do not add beside MongoDB by default.** Use only if a documented use case justifies a second database; otherwise keep MongoDB as the existing operational datastore. |
+| **IBM Cloud Event Notifications Lite** | Demo-only event routing for application alerts, synthetic appointment reminders or test webhooks | Lite has limits including 10 topics, 5 destinations, 20 outbound emails, 20 SMS and 20 webhooks, plus 10 subscriptions; IBM labels Lite evaluation-only and says inactive Lite instances may be deleted after 30 days. [IBM plans](https://cloud.ibm.com/docs/event-notifications?locale=en&topic=event-notifications-getting-started) | Optional. Never include diagnoses, ID numbers, medical-aid membership numbers or detailed appointment reasons in notification payloads. Check SMS/email consent and destination availability. |
+| **IBM Cloud Secrets Manager Trial** | Temporary evaluation of secret retrieval and rotation workflows | The Trial plan is free for 30 days; Standard is billed. [IBM pricing](https://cloud.ibm.com/docs/secrets-manager?topic=secrets-manager-pricing) | Treat as a trial, not a forever-free runtime dependency. Use development environment variables locally and platform secret bindings for the demo; budget for a managed production option. |
+| **IBM Cloud Monitoring Lite** | Temporary evaluation of monitoring dashboards and metrics | The Lite plan is a 30-day trial; continued monitoring requires a graduated-tier plan. [IBM pricing](https://cloud.ibm.com/docs/monitoring?locale=en&topic=monitoring-pricing_plans) | Optional 30-day test only. Do not assume production monitoring is free. |
+| **watsonx.governance trial** | Explore model inventories, evaluation and AI governance processes | IBM pricing currently advertises a 14-day free trial for the shared environment; paid options exist. [IBM pricing](https://www.ibm.com/products/watsonx-governance/pricing) | Optional later assessment; not needed for the MVP. Maintain application-level audit/versioning regardless. |
+| **IBM Cloud IAM, service IDs and access groups** | Give the deployer, app runtime, backup job and CI pipeline separate least-privilege identities | IAM is used to control access to IBM Cloud resources; service and account capabilities vary by resource/plan. [IBM account/free start](https://cloud.ibm.com/docs/overview?topic=overview-tutorial-try-for-free) | Use immediately. Never reuse an all-powerful personal key in app runtime code. |
+| **IBM Cloud account starter credit** | Short-term exploration of services that do not have suitable long-term free plans | IBM currently documents $200 in credits for eligible new Pay-As-You-Go accounts for the first 30 days, with payment-card verification; not a permanent monthly allowance. [IBM account start](https://cloud.ibm.com/docs/overview?topic=overview-tutorial-try-for-free) | Do not base the long-term architecture on the credit. Set spending notifications and review the cost estimator before adding billable services. |
+
+### Free tool strategy — avoid needless complexity
+
+- Keep MongoDB as the sole operational database while the current application is based on MongoDB.
+- Use **watsonx.ai** for AI model experiments and inference adapter prototypes.
+- Use **watsonx.data** only for a separate synthetic/de-identified analytics experiment if a real analytics requirement emerges; it is not required for patient CRUD, appointments or claims.
+- Use **Code Engine** for an inexpensive serverless/container demo and batch jobs.
+- Use **Object Storage** for a file/storage adapter and backup experiments, with free-tier expiry clearly recorded.
+- Use **Event Notifications** only for low-volume, non-sensitive evaluation notifications.
+- Avoid enabling every service just because it has a free plan. Each additional service adds configuration, access control, data-transfer questions, monitoring work and eventual migration cost.
+
+### Cost and location checks
+
+1. Filter the IBM Cloud Catalog to Lite/Free plans, then open the exact plan documentation before creating a resource.
+2. Confirm whether the service is available in the chosen region and whether its data can remain where the intended processing agreement requires. **Do not assume that Frankfurt or another non-South-African region is compliant just because it is available.**
+3. Record: service name, account/region, plan, trial expiry, free quota, quota owner, billable overage behavior, retention/inactivity behavior, and deletion/export steps.
+4. Add spending notifications/budgets where available; review billing after every resource creation and demo release.
+5. Do not use a trial or Lite instance as the sole production copy of patient records, claim history or backups.
+
+## 4. Architecture and repository approach
+
+Prefer a modular monolith and preserve the existing codebase. Do not introduce microservices, a new database, Kubernetes or Rust unless metrics and a documented use case justify it.
+
+- Frontend: Next.js App Router, React, TypeScript, and existing UI library.
+- Server/API: existing Node.js backend; if no API framework exists, choose a small established framework that fits the current repository and document the choice.
+- Data: existing MongoDB; explicit schemas, indexes, runtime validation, tenant scoping, and atomic/transactional invariants where supported.
+- File storage: provider-neutral `DocumentStorage` adapter; local filesystem or mock storage for tests, IBM COS only when configured.
+- AI: `AIProvider` interface with `MockAIProvider` and optional `WatsonxAIProvider`.
+- Switch: `ClaimsSwitchAdapter` interface with `MockClaimsSwitchAdapter` and future vendor-specific adapters.
+- Background jobs: start with a small, replaceable job interface for document processing, notifications, and backup exports. Do not run a CPU-heavy job inside a request/response handler.
+- Contracts/validation: shared request/response types and runtime validation.
+- Observability: structured logs with request IDs and tenant-safe metadata, metrics and health checks; never dump medical record content into logs.
+
+Suggested layout (adjust to the actual repository):
+
+```text
+synapsemed/
+  apps/
+    web/                    # Next.js user interface
+    api/                    # Node API, if separate app already exists
+    worker/                 # optional jobs, only when necessary
+  packages/
+    contracts/              # request/response types and validation
+    ui/                     # reusable components, if shared UI is needed
+    config/                 # shared lint/TypeScript configuration
+  src/
+    modules/
+      identity/             # tenant membership, roles, access policy
+      practices/
+      patients/
+      appointments/
+      clinical/              # templates, encounters, notes, timeline
+      documents/             # upload, scanning, extraction metadata
+      billing/               # tariffs, invoices, payments
+      claims/                # claim lifecycle, switch adapters
+      ai/                    # AIProvider + mock + watsonx adapter
+      audit/
+      subscriptions/         # separate PMS plan / usage ledger
+    workers/
+      backup.worker.ts
+    utils/
+      env-validator.ts
+  docs/
+    PRODUCT_REQUIREMENTS.md
+    DATA_MODEL.md
+    SECURITY_PRIVACY.md
+    IBM_FREE_TIER_REGISTER.md
+    CLAIMS_SWITCH_ADAPTER.md
+    DEPLOYMENT.md
+    BACKUP_RESTORE.md
+    DECISIONS.md
+  infra/
+    Dockerfile
+    docker-compose.yml       # local development only, if useful
+  .env.example              # placeholders only; no secrets
+```
+
+Do not move/rename all folders without first mapping the existing codebase and getting approval for a risky refactor.
+
+## 5. Core data model additions
+
+Add only fields supported by tested business requirements. Every tenant-owned entity must be scoped server-side to its practice/tenant.
+
+### Clinical encounter structure (illustrative TypeScript shape)
+
+```ts
+type EncounterReviewStatus = "draft" | "ai_draft_ready" | "clinician_reviewed" | "signed";
+
+type EncounterField = {
+  fieldId: string;
+  sectionKey: string;
+  label: string;
+  fieldType: "text" | "textarea" | "number" | "date" | "select" | "vitals" | "checkbox";
+  value: unknown; // Validate against fieldType/template schema at runtime.
+};
+
+type Encounter = {
+  id: string;
+  tenantId: string;
+  patientId: string;
+  providerId: string;
+  occurredAt: string; // ISO-8601 UTC
+  templateId: string;
+  templateVersion: number;
+  formData: EncounterField[];
+  reviewStatus: EncounterReviewStatus;
+  aiMetadata?: {
+    provider: "mock" | "ibm-watsonx-ai";
+    modelId?: string;
+    promptVersion: string;
+    generatedAt: string;
+    sourceDocumentIds: string[];
+    reviewStatus: "not_generated" | "pending_review" | "approved" | "rejected";
+    approvedBy?: string;
+    approvedAt?: string;
+  };
+};
+```
+
+Do not allow arbitrary `unknown` values through to persistence without validating them against the selected template schema. Prefer explicit typed values per field type when implementing production schemas.
+
+Initial entities:
+
+- `Practice`, `Branch`, `User`, `Role`, `Permission`, `ProviderProfile`
+- `Patient`, `MedicalAidMembership`, `ConsentRecord`, `Appointment`
+- `EncounterTemplate`, `Encounter`, `ClinicalNote`, `Document`, `Prescription`, `Referral`, `Allergy`, `Medication`
+- `ServiceCode`, `TariffVersion`, `Invoice`, `InvoiceLine`, `Payment`, `PaymentAllocation`
+- `Claim`, `ClaimLine`, `ClaimSubmission`, `SwitchResponse`, `Remittance`
+- `AuditEvent`, `Subscription`, `UsageLedger`, `BackupRun`, `AIJob`
+
+Keep internal IDs separate from visible patient numbers. Do not log South African ID numbers or complete medical-aid membership numbers. Encrypt sensitive fields using a reviewed approach where required; an environment-variable string alone does not establish secure key management.
+
+## 6. Required interfaces
+
+### Claims switch adapter
+
+```ts
+export interface ClaimsSwitchAdapter {
+  validateClaim(input: NormalisedClaim): Promise<ValidationResult>;
+  submitClaim(input: NormalisedClaim, idempotencyKey: string): Promise<SubmissionResult>;
+  getStatus(externalReference: string): Promise<ClaimStatusResult>;
+  healthCheck(): Promise<AdapterHealth>;
+}
+```
+
+Create `MockClaimsSwitchAdapter` with deterministic fixtures and a visible `SIMULATED` badge. Do not add live medical-scheme URLs or credentials until a real provider has authorised the integration and supplied its documentation, sandbox and support process.
+
+### AI provider interface
+
+```ts
+export interface AIProvider {
+  generateClinicalDraft(input: ClinicalDraftRequest): Promise<ClinicalDraftResult>;
+  extractDocumentFields(input: DocumentExtractionRequest): Promise<DocumentExtractionResult>;
+  healthCheck(): Promise<AIProviderHealth>;
+}
+```
+
+Implement a deterministic mock first. Keep model requests, authentication and retry logic behind a server-only provider class. The UI should work without IBM credentials by displaying an “AI unavailable / demo mode” state.
+
+## 7. Backup, environment validation, and deployment requirements
+
+### Backup worker
+
+Implement `src/workers/backup.worker.ts` as a job/command, not as a request handler. Requirements:
+
+- Export only synthetic data in development until production backup is separately approved.
+- Use MongoDB's supported backup/export utilities appropriate to the deployment and document prerequisites.
+- Write an encrypted backup artifact, validate completion/size/checksum, and upload it to a private COS bucket when configured.
+- Use clear names such as `backups/database/backup_YYYY_MM_DDTHHmmssZ.archive.gz`; do not put tenant-specific labels on a whole-database dump that contains multiple tenants.
+- If per-tenant exports are required, implement an explicitly filtered, tested export with tenant isolation and reconciliation checks. Never imply that a full database dump contains only one tenant.
+- Keep backup credentials separate from application credentials; use least-privilege access.
+- Add retention configuration, failure alerts, checksums, backup audit events, and a restore-test script. A backup is not considered successful until a restore test has been completed on a safe environment.
+- Do not claim encryption because an archive is merely gzip-compressed. Use a reviewed authenticated-encryption/key-management design; do not commit or log keys.
+- Schedule through a documented, configured scheduler/job mechanism; do not assume a free service can run a permanent always-on worker.
+
+### Environment validation
+
+Create `src/utils/env-validator.ts` (or the project's equivalent) to validate required environment variables and fail fast on missing production settings. Validate names, endpoint formats and expected formats without logging their values. Use separate development/test/production modes. Do not require `WATSONX_API_KEY` when AI is configured to `mock`, and do not stop a non-AI workflow from starting when optional AI credentials are intentionally absent.
+
+Example `.env.example` placeholders:
+
+```dotenv
+APP_ENV=development
+COUNTRY_CODE=ZA
+DEFAULT_TIMEZONE=Africa/Johannesburg
+DATABASE_URL=mongodb://localhost:27017/synapsemed
+AI_PROVIDER=mock
+WATSONX_API_KEY=
+WATSONX_PROJECT_ID=
+WATSONX_API_ENDPOINT=
+WATSONX_MODEL_ID=
+OBJECT_STORAGE_PROVIDER=local
+IBM_COS_ENDPOINT=
+IBM_COS_BUCKET=
+IBM_COS_INSTANCE_ID=
+CLAIMS_SWITCH_PROVIDER=mock
+```
+
+Use the exact variable names expected by the existing application. Do not put placeholders that look like real credentials or pretend that `DATABASE_ENCRYPTION_KEY` alone guarantees POPIA compliance. Load server-only values only on the server; never prefix secrets with `NEXT_PUBLIC_`.
+
+### Docker and Code Engine
+
+Build a multi-stage Docker image using the repository's pinned Node.js version and package manager lockfile. Run as a non-root user, install only production dependencies in the runtime image, include health checks, and do not copy `.env` or test patient data into the image. Add a deployment README describing image build, registry push, Code Engine deployment, environment configuration, scale-to-zero settings, health checks, rollback, and monitoring. Test the container locally before deploying.
+
+### Automated tests
+
+- Unit tests for form schema validation, AI approval states, invoice money calculations and claim lifecycle transitions.
+- Tenant-isolation tests for patients, documents, timeline, invoices, claims, export endpoints and background jobs.
+- Integration tests for mock AI, mock switch, object-storage adapter and backup failure paths.
+- API tests for authentication, authorisation, invalid inputs, rate limits and idempotency.
+- End-to-end tests for a full synthetic workflow: register patient -> book appointment -> create encounter -> generate AI draft -> clinician review -> create invoice -> validate mock claim -> show result on timeline.
+- CI tasks: lint, typecheck, tests, dependency/security checks and build.
+- Add negative tests. A successful happy path is not sufficient for a medical record or billing workflow.
+
+## 8. South African privacy and operational readiness
+
+Before a live pilot, obtain appropriate legal, privacy and security review for POPIA, special personal information, lawful processing, notices/consent where required, operator agreements, retention/deletion, cross-border processing, data-subject requests, incident and breach handling, and Information Officer responsibilities. Also review relevant HPCSA or other professional rules for the user types supported.
+
+Test and document:
+
+- Role-based access, least privilege, privileged-user MFA, session security and secure password/reset flows.
+- Tenant isolation enforced by the server, plus audit logs for record reads/changes and exports.
+- Encryption in transit and at rest, key rotation/access controls, document permissions, upload limits, malware scanning before production and safe downloads.
+- Data location, subprocessors, AI terms, provider retention/training settings, contract terms and transfer mechanisms for every external service.
+- Clinical record versioning, signed note corrections, consent, minimum-necessary disclosure and data retention.
+- Database/object storage backup, restore procedure, recovery objectives, incident response, vulnerability/dependency scanning, monitoring and penetration testing.
+- Explicit user disclosure and review for any clinical decision-support or generated clinical content.
+
+This is a technical checklist, not legal advice or a certification that the product complies with South African law.
+
+## 9. Master prompt to paste into IBM Bob
+
+Use this prompt after Bob has inspected the current repository. Ask Bob to implement one milestone at a time; do not ask it to generate every file or deploy to cloud in one pass.
+
+```text
+ROLE
+You are a senior full-stack engineer working on SynapseMed, a South African multi-tenant medical practice management SaaS. The app currently uses the technologies found in this repository (expected: Next.js App Router, React, TypeScript, Node.js and MongoDB). IBM Bob is the coding environment.
+
+FIRST ACTION
+Inspect the current repository and report the actual framework, package manager, folder structure, authentication/authorisation, database, UI conventions, tests, deployment files and known risks. Do not edit files in the first response. Propose the smallest safe next milestone, exact files to change and how to test it. Wait for my approval.
+
+PRODUCT GOAL
+Build patient registration, appointments, configurable clinical encounter forms, a unified chronological patient timeline, billing/invoices, South African medical-aid claim preparation, a simulated claims switch, and an AI-assisted document workflow. The application must remain useful when external AI/switch services are unavailable.
+
+DESIGN PRINCIPLES
+1. Preserve the existing stack and repository conventions. Use a modular monolith. Do not add microservices, another database, Kubernetes or Rust without a written justification based on measured needs.
+2. Use concepts inspired by OpenEMR-style form-driven notes, Bahmni-style module separation and Medplum-style timelines. Review licences before copying any code; prefer implementing original code and UX.
+3. Use `Africa/Johannesburg` for display/default timezone and `ZA` for South African business defaults, while storing timestamps consistently (UTC recommended).
+4. Every tenant-owned data operation must be authorised server-side using the authenticated user's tenant membership. Never trust an `X-Tenant-ID` header by itself.
+5. Use synthetic/demo data only. Never ask for or create real patient identity data, secrets, API keys or medical-aid credentials.
+6. All AI output is draft-only and requires explicit review/approval. AI must not diagnose autonomously, prescribe, sign a clinical note, finalise an ICD-10 code or submit a claim.
+7. A simulated claim must be unmistakably labelled SIMULATED. Do not invent live switch APIs, credentials, URLs or approvals.
+8. Use runtime validation, least privilege, audit events, safe error handling, idempotency and tests for sensitive flows.
+9. Do not claim POPIA or HIPAA compliance. List remaining legal/security reviews honestly.
+10. Use only verified service names, current API endpoints and supported model IDs from IBM account documentation. Never hardcode an invalid placeholder like `https://ibm.com` as a service endpoint.
+
+FEATURES TO IMPLEMENT IN MILESTONES
+A. Multi-tenant practice/branch/users/roles/permissions, patient records and appointments.
+B. Template-driven `ClinicalEncounterCanvas`: left clinical form, right AI Draft Insights panel, configurable template sections, versioned templates, visible autosave status, and explicit “Verify and Save to Patient Timeline” action.
+C. Unified chronological timeline for permitted appointments, encounters, documents, referrals, prescriptions, claims, invoices and payments; enforce source-module permissions.
+D. Billing: versioned service/tariff catalogue, source/licence-documented ICD-10 lookup, decimal-safe money calculations, invoice lines, medical-aid versus patient amounts, and claim lifecycle with idempotency.
+E. `ClaimsSwitchAdapter` interface plus deterministic `MockClaimsSwitchAdapter` fixtures for approved, rejected, queried, duplicate, timeout and retry outcomes. Never contact live endpoints.
+F. `AIProvider` interface plus deterministic `MockAIProvider`. Optional server-only `WatsonxAIProvider` to prototype document summary, draft clinical sections and candidate claim-field extraction. AI should be mock by default until explicitly configured.
+G. Provider-neutral document storage with local mock adapter and optional IBM Cloud Object Storage adapter.
+H. `backup.worker.ts`, environment validation, multi-stage non-root Dockerfile, Code Engine deployment guide, backup/restore test, and CI checks. Backups must be encrypted with a reviewed design; gzip alone is not encryption.
+I. Automated unit, integration, tenant-isolation and end-to-end tests.
+
+IBM CLOUD TOOLING
+Design optional adapters for IBM watsonx.ai (AI drafts/text extraction), Code Engine (demo deployment/jobs), Cloud Object Storage (document/backup adapter), Event Notifications (non-sensitive demo notifications), and watsonx.data (optional analytics sandbox only). Do not make watsonx.data the operational patient database. Do not make trial/Lite services hard dependencies. Add a docs/IBM_FREE_TIER_REGISTER.md listing exact plan, quota, region, expiry/inactivity policy, overage behavior, data sensitivity allowed and replacement plan for each enabled service. Use Cloudant only if there is a documented reason to add it to the existing MongoDB architecture. Never deploy all catalog services automatically.
+
+SECURITY IMPLEMENTATION DETAILS
+- Do not use a client-supplied tenant header as authorisation.
+- Do not rely on regex-only redaction for patient identifiers. Minimise data, use structured validation/redaction, and require privacy review before external data processing.
+- Keep all secrets on the server or in deployment secret bindings. Never use `NEXT_PUBLIC_` for secrets.
+- Do not log clinical text, raw uploaded documents, ID numbers, API tokens or raw AI prompts by default.
+- Treat file contents as untrusted input and defend against prompt injection.
+- Ensure AI can be unavailable without blocking manual clinical/billing work.
+- Require confirmation before destructive schema migrations, wide refactors or new billable cloud resources.
+
+WORK METHOD
+For each approved milestone:
+1. Explain the intended changes briefly.
+2. Make the smallest coherent patch; do not overwrite unrelated files.
+3. List changed files and why.
+4. Run available lint, typecheck, unit tests, integration tests and build. Add tests for new behavior.
+5. Fix failures before reporting completion, or clearly report any command that could not run and why.
+6. Update the documentation and `.env.example` with placeholders only.
+7. Identify untested risks and the next smallest milestone. Do not claim deployment, compliance, backups or integration succeeded unless it has been executed and verified.
+
+Begin by inspecting the repository only. Do not code until I approve the proposed first milestone.
+```
+
+## 10. Production-readiness prompt for a later milestone
+
+Paste only after the core features and tests are in place:
+
+```text
+Implement the production-readiness milestone for SynapseMed after inspecting the current repository. First write a plan; do not change files until I approve it.
+
+Scope:
+- Validate server environment configuration safely at startup; missing required production variables must fail clearly without printing secret values.
+- Add a non-root multi-stage Dockerfile and a deployment guide for IBM Cloud Code Engine.
+- Add a backup job that exports only the intended data scope, encrypts the archive using a reviewed authenticated-encryption/key-management approach, uploads to a private IBM Cloud Object Storage bucket only when configured, records checksums/run status, and emits an alert on failure.
+- Create restore testing for a non-production environment. A successful upload is not sufficient evidence of backup recoverability.
+- Add tenant-isolation, access-control, data-export, claim-idempotency and AI-human-review tests.
+- Add health/readiness checks, structured logs that exclude patient content/secrets, dependency/security scans, rollback notes and an IBM free-tier cost/resource register.
+- Keep the AI provider and claim switch in mock mode unless explicit non-secret configuration enables an approved test connection.
+- Do not schedule a permanent always-on worker or create billable IBM Cloud resources automatically. Provide exact manual provisioning/deployment commands and clearly label potential charges.
+- Do not claim POPIA/HIPAA compliance or a production deployment. Produce a checklist of approvals, contracts, region checks and penetration/restore tests still outstanding.
+
+At the end, report files changed, tests executed, result of each test, deployment steps not executed, and remaining risks. Never report a backup restore, deployment or test as successful if it was not actually run and observed.
+```
+
+## 11. Official IBM references
+
+- [IBM Cloud Lite and Free plans](https://cloud.ibm.com/docs/overview?topic=overview-tutorial-try-for-free)
+- [IBM watsonx.ai pricing / Free Toolbox](https://www.ibm.com/products/watsonx-ai/pricing)
+- [watsonx.ai Studio Lite plan](https://www.ibm.com/docs/en/watsonx/saas?topic=studio-watsonxai-plans)
+- [watsonx.data plans and limitations](https://www.ibm.com/docs/en/watsonxdata/saas?topic=services-watsonxdata-plans)
+- [IBM Code Engine pricing](https://cloud.ibm.com/docs/codeengine?topic=codeengine-pricing)
+- [IBM Cloud Object Storage Free Tier](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-faq-provision)
+- [IBM Cloudant Lite and Standard plans](https://cloud.ibm.com/docs/Cloudant?topic=Cloudant-ibm-cloud-public)
+- [IBM Cloud Event Notifications Lite](https://cloud.ibm.com/docs/event-notifications?locale=en&topic=event-notifications-getting-started)
+- [IBM Secrets Manager pricing](https://cloud.ibm.com/docs/secrets-manager?topic=secrets-manager-pricing)
+- [IBM Cloud Monitoring pricing](https://cloud.ibm.com/docs/monitoring?locale=en&topic=monitoring-pricing_plans)
+- [watsonx.governance pricing](https://www.ibm.com/products/watsonx-governance/pricing)
+- [Information Regulator South Africa — POPIA](https://inforegulator.org.za/popia/)
+- [HPCSA ethical guidelines](https://www.hpcsa-blogs.co.za/new-and-updated-ethical-guidelines/)
+
+## 12. Definition of a successful first milestone
+
+- The app runs locally with documented commands.
+- Synthetic demo users can access a development-only workflow.
+- Server-side tests prove one tenant cannot access another tenant's patients, documents, timeline, invoices or claims.
+- CI runs lint, type checks, tests and build.
+- The app works with mocked AI and mocked switch without IBM credentials.
+- No real patient data, live medical-aid submission, or unsupported compliance claim is present.
+
+Proceed only when these checks pass; then build patient and appointment workflows before the clinical canvas, billing and AI integrations.
