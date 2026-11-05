@@ -42,6 +42,8 @@ export type ModuleKey =
   | 'billing'
   | 'switch'
   | 'inventory'
+  | 'pharmacy_inventory'
+  | 'medication_workflow'
   | 'ai_admin'
   | 'transcription'
   | 'patient_portal'

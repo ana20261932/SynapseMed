@@ -16,8 +16,8 @@ router.get('/', requireAuth, requirePracticeMembership(), requireModule('invento
 
 router.post('/', requireAuth, requirePracticeMembership(['owner','admin','stock_manager']), requireModule('inventory'), async (req: any, res: any, next: any) => {
   try {
-    const { sku, name, description, unit, quantity, lowStockThreshold, batchTracked, expiryTracked } = req.body;
-    const item = await prisma.inventoryItem.create({ data: { practiceId: req.practiceId!, sku, name, description, unit, quantity: quantity ?? 0, lowStockThreshold: lowStockThreshold ?? 5, batchTracked, expiryTracked } });
+    const { sku, name, description, nappiCode, unit, quantity, lowStockThreshold, batchTracked, expiryTracked } = req.body;
+    const item = await prisma.inventoryItem.create({ data: { practiceId: req.practiceId!, sku, name, description, nappiCode, unit, quantity: quantity ?? 0, lowStockThreshold: lowStockThreshold ?? 5, batchTracked, expiryTracked } });
     res.status(201).json({ success: true, data: item } satisfies ApiResponse);
   } catch (err) { next(err); }
 });
