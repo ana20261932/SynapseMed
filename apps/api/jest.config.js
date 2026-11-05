@@ -5,6 +5,7 @@ module.exports = {
   testTimeout: 30000,
   roots: ['<rootDir>/src'],
   testMatch: ['**/__tests__/**/*.test.ts', '**/*.spec.ts'],
+  globalSetup: '<rootDir>/src/testSetup.ts',
   moduleNameMapper: {
     '^@synapsemed/shared$': '<rootDir>/../../packages/shared/src/index.ts',
   },

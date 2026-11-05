@@ -84,6 +84,11 @@ model Practice {
   auditEvents          AuditEvent[]
   practiceNumbers      PracticeNumber[]
   extensionEntitlements PracticeExtensionEntitlement[]
+  odontogramCharts     OdontogramChart[]
+  radiologyOrders      RadiologyOrder[]
+  mentalHealthRecords  MentalHealthRecord[]
+  alliedHealthSessions AlliedHealthSession[]
+  aiSettings           PracticeAISettings?
 }
 
 model PracticeMembership {
@@ -168,10 +173,14 @@ model Patient {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  consents     PatientConsent[]
-  appointments Appointment[]
-  encounters   Encounter[]
-  documents    Document[]
+  consents             PatientConsent[]
+  appointments         Appointment[]
+  encounters           Encounter[]
+  documents            Document[]
+  odontogramCharts     OdontogramChart[]
+  radiologyOrders      RadiologyOrder[]
+  mentalHealthRecords  MentalHealthRecord[]
+  alliedHealthSessions AlliedHealthSession[]
 }
 
 model PatientConsent {
@@ -291,40 +300,214 @@ model SpecialtyConfiguration {
   @@unique([practiceId, specialty])
 }
 
+// ── Dental ────────────────────────────────────────────────────────────────────
+
+model OdontogramChart {
+  id            String       @id @default(uuid())
+  practiceId    String
+  practice      Practice     @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  patientId     String
+  patient       Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  chartDate     DateTime     @default(now())
+  authorUserId  String
+  notes         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  toothEntries  ToothEntry[]
+  treatmentPlans TreatmentPlan[]
+}
+
+model ToothEntry {
+  id          String          @id @default(uuid())
+  chartId     String
+  chart       OdontogramChart @relation(fields: [chartId], references: [id], onDelete: Cascade)
+  toothNumber Int
+  surface     String?
+  condition   String
+  notes       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model TreatmentPlan {
+  id            String          @id @default(uuid())
+  chartId       String
+  chart         OdontogramChart @relation(fields: [chartId], references: [id], onDelete: Cascade)
+  practiceId    String
+  patientId     String
+  authorUserId  String
+  status        String          @default("draft")
+  notes         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  items         TreatmentPlanItem[]
+}
+
+model TreatmentPlanItem {
+  id              String        @id @default(uuid())
+  planId          String
+  plan            TreatmentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  toothNumber     Int?
+  procedureCode   String
+  description     String
+  estimatedFeeZar Float         @default(0)
+  status          String        @default("planned")
+  completedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+// ── Radiology ─────────────────────────────────────────────────────────────────
+
+model RadiologyOrder {
+  id                 String           @id @default(uuid())
+  practiceId         String
+  practice           Practice         @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  patientId          String
+  patient            Patient          @relation(fields: [patientId], references: [id])
+  requestingUserId   String
+  encounterId        String?
+  modality           String
+  bodyPart           String?
+  clinicalIndication String?
+  urgency            String           @default("routine")
+  status             String           @default("ordered")
+  externalStudyRef   String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  report             RadiologyReport?
+}
+
+model RadiologyReport {
+  id              String         @id @default(uuid())
+  orderId         String         @unique
+  order           RadiologyOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  radiologistName String?
+  reportText      String
+  status          String         @default("draft")
+  aiGenerated     Boolean        @default(false)
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  signedAt        DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+// ── Psychiatry / Mental health ────────────────────────────────────────────────
+
+model MentalHealthRecord {
+  id                   String    @id @default(uuid())
+  practiceId           String
+  practice             Practice  @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  patientId            String
+  patient              Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  encounterId          String?
+  authorUserId         String
+  recordType           String
+  content              String
+  status               String    @default("draft")
+  accessRestricted     Boolean   @default(true)
+  consentRef           String?
+  aiGenerated          Boolean   @default(false)
+  reviewedBy           String?
+  reviewedAt           DateTime?
+  signedAt             DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+// ── Allied health ─────────────────────────────────────────────────────────────
+
+model AlliedHealthSession {
+  id               String    @id @default(uuid())
+  practiceId       String
+  practice         Practice  @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  patientId        String
+  patient          Patient   @relation(fields: [patientId], references: [id])
+  practitionerUserId String
+  encounterId      String?
+  discipline       String
+  sessionType      String
+  sessionDate      DateTime  @default(now())
+  durationMinutes  Int?
+  goals            String?
+  outcomeNotes     String
+  status           String    @default("draft")
+  signedAt         DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
 // ── Extensions ────────────────────────────────────────────────────────────────
 
 model Extension {
-  id           String   @id @default(uuid())
-  publisherId  String
-  name         String
-  slug         String   @unique
-  version      String
-  description  String?
-  permissions  String   @default("[]")
+  id            String   @id @default(uuid())
+  publisherId   String
+  name          String
+  slug          String   @unique
+  latestVersion String   @default("1.0.0")
+  description   String?
+  permissions   String   @default("[]")
   compatibility String?
-  price        Float    @default(0)
-  billingModel String   @default("monthly")
-  reviewState  String   @default("pending")
-  manifestJson String   @default("{}")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  price         Float    @default(0)
+  billingModel  String   @default("monthly")
+  reviewState   String   @default("pending")
+  manifestJson  String   @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
+  versions             ExtensionVersion[]
   practiceEntitlements PracticeExtensionEntitlement[]
 }
 
+// Immutable version snapshot — enables rollback
+model ExtensionVersion {
+  id           String    @id @default(uuid())
+  extensionId  String
+  extension    Extension @relation(fields: [extensionId], references: [id], onDelete: Cascade)
+  version      String
+  manifestJson String    @default("{}")
+  permissions  String    @default("[]")
+  changelog    String?
+  publishedAt  DateTime  @default(now())
+
+  @@unique([extensionId, version])
+}
+
 model PracticeExtensionEntitlement {
-  id          String    @id @default(uuid())
-  practiceId  String
-  practice    Practice  @relation(fields: [practiceId], references: [id], onDelete: Cascade)
-  extensionId String
-  extension   Extension @relation(fields: [extensionId], references: [id])
-  status      String    @default("inactive")
-  activatedAt DateTime?
-  expiresAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id              String    @id @default(uuid())
+  practiceId      String
+  practice        Practice  @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  extensionId     String
+  extension       Extension @relation(fields: [extensionId], references: [id])
+  installedVersion String?
+  status          String    @default("inactive")
+  activatedAt     DateTime?
+  disabledAt      DateTime?
+  uninstalledAt   DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  installLogs ExtensionInstallLog[]
 
   @@unique([practiceId, extensionId])
+}
+
+// Audit trail for install/uninstall/enable/disable/rollback events
+model ExtensionInstallLog {
+  id             String                       @id @default(uuid())
+  entitlementId  String
+  entitlement    PracticeExtensionEntitlement @relation(fields: [entitlementId], references: [id], onDelete: Cascade)
+  actorUserId    String
+  event          String
+  fromVersion    String?
+  toVersion      String?
+  notes          String?
+  createdAt      DateTime                     @default(now())
 }
 
 // ── Subscription & PMS billing ────────────────────────────────────────────────
@@ -440,19 +623,26 @@ model SwitchProviderConnection {
 }
 
 model SwitchUsageEvent {
-  id             String                   @id @default(uuid())
-  connectionId   String
-  connection     SwitchProviderConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
-  isMock         Boolean                  @default(true)
-  eventType      String
-  providerRef    String?
-  status         String                   @default("simulated")
-  idempotencyKey String                   @unique
-  payloadRef     String?
-  providerFeeZar Float                    @default(0)
-  platformFeeZar Float                    @default(0)
-  reversedAt     DateTime?
-  createdAt      DateTime                 @default(now())
+  id                  String                   @id @default(uuid())
+  connectionId        String
+  connection          SwitchProviderConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  isMock              Boolean                  @default(true)
+  eventType           String
+  providerRef         String?
+  status              String                   @default("simulated")
+  idempotencyKey      String                   @unique
+  // Full SA claim payload (JSON stored as string — no PHI in plain text in production)
+  claimJson           String?
+  // Adjudication response from switch/scheme
+  adjudicationJson    String?
+  adjudicationStatus  String?
+  schemeRef           String?
+  approvedAmountZar   Float?
+  rejectionCodes      String?
+  providerFeeZar      Float                    @default(0)
+  platformFeeZar      Float                    @default(0)
+  reversedAt          DateTime?
+  createdAt           DateTime                 @default(now())
 }
 
 model SwitchFeeRule {
@@ -508,6 +698,7 @@ model InventoryItem {
   sku               String
   name              String
   description       String?
+  nappiCode         String?   // NAPPI code for medical aid claims (pharmacy)
   unit              String   @default("unit")
   quantity          Int      @default(0)
   lowStockThreshold Int      @default(5)
@@ -537,23 +728,56 @@ model StockMovement {
 // ── AI jobs ───────────────────────────────────────────────────────────────────
 
 model AiJob {
-  id            String    @id @default(uuid())
-  requestedBy   String
-  user          User      @relation(fields: [requestedBy], references: [id])
-  practiceId    String
-  purpose       String
-  provider      String    @default("mock")
-  model         String?
-  inputRef      String?
-  outputRef     String?
-  consentStatus String    @default("not_required")
-  status        String    @default("queued")
-  reviewRequired Boolean  @default(true)
-  reviewedBy    String?
-  reviewedAt    DateTime?
-  costUnits     Float?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id             String    @id @default(uuid())
+  requestedBy    String
+  user           User      @relation(fields: [requestedBy], references: [id])
+  practiceId     String
+  purpose        String
+  provider       String    @default("mock")
+  model          String?
+  inputRef       String?
+  outputRef      String?
+  consentStatus  String    @default("not_required")
+  status         String    @default("queued")
+  reviewRequired Boolean   @default(true)
+  reviewedBy     String?
+  reviewedAt     DateTime?
+  redactedAt     DateTime?
+  costUnits      Float?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+// Per-practice per-period AI usage ledger — enforces plan limits
+model AiUsageLedger {
+  id          String   @id @default(uuid())
+  practiceId  String
+  periodStart DateTime
+  periodEnd   DateTime
+  purpose     String
+  jobCount    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([practiceId, periodStart, purpose])
+}
+
+// Transcription jobs — consent-gated, retention-controlled
+model TranscriptionJob {
+  id              String    @id @default(uuid())
+  practiceId      String
+  requestedBy     String
+  patientId       String?
+  encounterId     String?
+  consentGranted  Boolean   @default(false)
+  consentRef      String?
+  audioRef        String?
+  transcriptDraft String?
+  status          String    @default("pending_consent")
+  retainAudioUntil DateTime?
+  audioDeletedAt  DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 // ── Audit ─────────────────────────────────────────────────────────────────────
@@ -586,4 +810,28 @@ model Notification {
   sentAt       DateTime?
   errorMessage String?
   createdAt    DateTime  @default(now())
+}
+
+// ── Practice AI & Automation Settings ────────────────────────────────────────
+
+model PracticeAISettings {
+  id                    String   @id @default(uuid())
+  practiceId            String   @unique
+  practice              Practice @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  aiProvider            String   @default("mock") // mock, gemini, watsonx, opencode
+  geminiApiKey          String?
+  geminiModel           String?  @default("gemini-1.5-flash")
+  watsonxApiKey         String?
+  watsonxProjectId      String?
+  watsonxModelId        String?  @default("ibm/granite-13b-chat-v2")
+  watsonxUrl            String?
+  opencodeApiKey        String?
+  opencodeBaseUrl       String?  @default("https://opencode.ai/zen/v1")
+  opencodeModel         String?  @default("gpt-4o-mini")
+  autoTaskReminders     Boolean  @default(false)
+  autoDoctorSetup       Boolean  @default(false)
+  autoClaimBilling      Boolean  @default(false)
+  reminderHoursBefore   Int      @default(24)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }

@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { randomUUID } from 'crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'CHANGE_THIS_IN_PRODUCTION_NEVER_COMMIT';
 const ACCESS_TOKEN_TTL = '15m';
@@ -16,7 +17,8 @@ export function signAccessToken(payload: Omit<JwtPayload, 'iat' | 'exp'>): strin
 }
 
 export function signRefreshToken(userId: string): string {
-  return jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_TTL });
+  // jti ensures uniqueness even when multiple tokens are issued within the same second
+  return jwt.sign({ sub: userId, jti: randomUUID() }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_TTL });
 }
 
 export function verifyToken(token: string): JwtPayload {

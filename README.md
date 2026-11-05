@@ -41,3 +41,15 @@ This ZIP consolidates the project scope and implementation guidance developed in
 ## Status
 
 Current status: **planning/specification starter pack**. No cloud resources have been provisioned, no switch provider has been connected, no payment integration has been activated, and no clinical or regulatory certification is claimed.
+
+## IBM Free Tier + ERPNext Integration
+
+This app supports integration with:
+- **IBM Cloudant Lite** (1 GB) - Optional NoSQL document store
+- **IBM Code Engine** - Serverless hosting (100k vCPU-s, 200k GB-s free/month)
+- **IBM Cloud Object Storage** (25 GB free) - Document storage
+- **IBM Watson Assistant** (10k calls/month) - AI patient portal/chatbot
+- **IBM Watson Speech to Text** (500 min/month) - Clinical dictation
+- **ERPNext Healthcare** - Open-source healthcare module integration
+
+All integrations use adapter patterns with mocks enabled by default. See `docs/IBM_FREE_TIER_REGISTER.md` and `config/.env.example` for configuration.
