@@ -268,6 +268,15 @@ export function Sidebar({ user, practices, activePractice, onPracticeChange, onL
                   Billing
                 </Link>
                 <Link
+                  href="/account"
+                  className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-colors ${
+                    activePath === '/account' ? 'bg-synapse-50 text-synapse-700' : 'text-clinic-600 hover:bg-clinic-50 hover:text-clinic-900'
+                  }`}
+                >
+                  <span className="w-8 text-center">🏢</span>
+                  Practice Account
+                </Link>
+                <Link
                   href="/settings/ai"
                   className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-colors ${
                     activePath === '/settings/ai' ? 'bg-synapse-50 text-synapse-700' : 'text-clinic-600 hover:bg-clinic-50 hover:text-clinic-900'

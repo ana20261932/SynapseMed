@@ -1,0 +1,141 @@
+// SynapseMed — CockroachDB Distributed Multi-Tenant Production Schema
+// South African POPIA & HPCSA Statutory Compliant
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("COCKROACH_DB_URL")
+}
+
+// ── Identity & Practice Memberships ──────────────────────────────────────────
+
+model User {
+  id                  String   @id @default(uuid())
+  email               String   @unique
+  passwordHash        String
+  firstName           String
+  lastName            String
+  phone               String?
+  role                String   @default("doctor") // doctor, radiologist, pharmacist, lab_tech, admin
+  councilDiscipline   String?
+  councilRegistration String?
+  mfaEnabled          Boolean  @default(true)
+  status              String   @default("active")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  memberships         PracticeMembership[]
+  auditEvents         AuditEvent[]
+}
+
+model Practice {
+  id              String   @id @default(uuid())
+  bhfNumber       String   @unique // 7-digit Board of Healthcare Funders
+  name            String
+  organisationType String  @default("multidisciplinary_clinic")
+  vatNumber       String?
+  countryCode     String   @default("ZA")
+  currency        String   @default("ZAR")
+  timezone        String   @default("Africa/Johannesburg")
+  subscriptionTier String  @default("enterprise") // solo, clinic, enterprise
+  monthlyFeeZar   Decimal  @default(7800.00)
+  switchFeePerClaimZar Decimal @default(3.50)
+  status          String   @default("active")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  memberships     PracticeMembership[]
+  patients        Patient[]
+  encounters      Encounter[]
+  invoices        CommercialInvoice[]
+}
+
+model PracticeMembership {
+  id         String   @id @default(uuid())
+  userId     String
+  practiceId String
+  role       String   @default("practitioner")
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  practice   Practice @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, practiceId])
+}
+
+// ── Commercial Invoicing & PayGate Subscriptions ─────────────────────────────
+
+model CommercialInvoice {
+  id            String   @id @default(uuid())
+  practiceId    String
+  invoiceNumber String   @unique
+  amountZar     Decimal
+  vatZar        Decimal
+  status        String   @default("paid")
+  periodStart   DateTime
+  periodEnd     DateTime
+  paidAt        DateTime?
+  paygateRef    String?
+  createdAt     DateTime @default(now())
+
+  practice      Practice @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+}
+
+// ── Clinical Care Records ───────────────────────────────────────────────────
+
+model Patient {
+  id               String   @id @default(uuid())
+  practiceId       String
+  southAfricanId   String?  // 13-digit SA ID number
+  passportNumber   String?
+  firstName        String
+  lastName         String
+  dateOfBirth      DateTime
+  gender           String
+  phone            String
+  email            String?
+  medicalAidName   String?
+  medicalAidNumber String?
+  medicalAidPlan   String?
+  dependantCode    String?
+  allergies        String?
+  chronicConditions String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  practice         Practice    @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  encounters       Encounter[]
+}
+
+model Encounter {
+  id               String   @id @default(uuid())
+  practiceId       String
+  patientId        String
+  clinicianId      String
+  date             DateTime @default(now())
+  chiefComplaint   String
+  historyOfIllness String?
+  icd10Codes       String?  // Comma-separated or JSON
+  status           String   @default("signed")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  practice         Practice @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  patient          Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model AuditEvent {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String
+  metadata  String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id])
+}

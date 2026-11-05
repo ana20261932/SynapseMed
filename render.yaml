@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: synapsemed-za-prod
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: apps/web
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: COCKROACH_CLUSTER_NAME
+        value: synapsemed-za-prod
+      - key: COCKROACH_TENANT_SCHEMA
+        value: tenant_sandton_0428192
+      - key: RENDER_SERVICE_URL
+        value: https://synapsemed-za-prod.onrender.com
