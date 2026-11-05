@@ -9,3 +9,7 @@ coverage/
 .DS_Store
 secrets/
 private-keys/
+-e 
+.next/
+apps/web/.next/
+
