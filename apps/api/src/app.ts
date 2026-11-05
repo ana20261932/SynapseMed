@@ -23,6 +23,7 @@ import dentalRoutes from './routes/dental.routes';
 import radiologyRoutes from './routes/radiology.routes';
 import psychiatryRoutes from './routes/psychiatry.routes';
 import alliedHealthRoutes from './routes/alliedHealth.routes';
+import cloudantRoutes from './routes/cloudant.routes';
 import aiRoutes from './routes/ai.routes';
 import extensionsRoutes from './routes/extensions.routes';
 import transcriptionRoutes from './routes/transcription.routes';
@@ -74,6 +75,7 @@ app.use('/api/v1/practices/:practiceId/automation', automationRoutes);
 app.use('/api/v1/practices/:practiceId/settings', settingsRoutes);
 app.use('/api/v1/practices/:practiceId/assistant', assistantRoutes);
 app.use('/api/v1/practices/:practiceId/storage', storageRoutes);
+app.use('/api/v1/practices/:practiceId/cloudant', cloudantRoutes);
 app.use('/api/v1/platform', platformRoutes);
 app.use('/api/v1/practices/:practiceId/platform', platformRoutes);
 

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { ibmServices } from '../lib/ibm';
 const router = Router();
 router.get('/', (_req, res) => {
   res.json({
@@ -8,6 +9,7 @@ router.get('/', (_req, res) => {
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV ?? 'development',
       syntheticData: process.env.USE_SYNTHETIC_DATA === 'true',
+      ibmServices: ibmServices.status(),
     },
   });
 });

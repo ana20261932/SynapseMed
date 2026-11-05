@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import { requireAuth } from '../middleware/requireAuth';
 import { requirePracticeMembership, requireModule } from '../middleware/requirePracticeMembership';
-import { getWatsonAssistantAdapter } from '../lib/assistant/MockWatsonAssistantAdapter';
+import { ibmServices } from '../lib/ibm';
 import { audit } from '../lib/audit';
 import { ApiResponse } from '@synapsemed/shared';
 import { Errors } from '../lib/errors';
@@ -21,7 +21,7 @@ router.post('/message',
         throw Errors.VALIDATION(details);
       }
       const { text, sessionId, context } = req.body;
-      const adapter = getWatsonAssistantAdapter();
+      const adapter = ibmServices.watsonAssistant.create();
       const response = await adapter.sendMessage(sessionId || null, { text, context });
       await audit({ actorId: req.user!.sub, practiceId: req.practiceId!, action: 'ai_job.create' as any, resourceType: 'AiJob', metadata: { provider: adapter.providerName, isMock: adapter.isMock, type: 'assistant.message' } });
       res.json({ success: true, data: { ...response, provider: adapter.providerName, isMock: adapter.isMock } } satisfies ApiResponse);

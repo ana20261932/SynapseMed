@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { getStorageAdapter } from '../lib/storage/MockStorageAdapter';
-import { getCOSAdapter } from '../lib/storage/CloudObjectStorageAdapter';
+import { ibmServices } from '../lib/ibm';
 import { requireAuth } from '../middleware/requireAuth';
 import { requirePracticeMembership } from '../middleware/requirePracticeMembership';
 import { audit } from '../lib/audit';
@@ -9,11 +8,10 @@ import { ApiResponse } from '@synapsemed/shared';
 const router = Router({ mergeParams: true });
 
 function getAdapter() {
-  const provider = process.env.OBJECT_STORAGE_PROVIDER || process.env.STORAGE_PROVIDER || 'mock';
-  if (provider === 'ibm-cos' || provider === 'cos') {
-    return getCOSAdapter();
+  if (ibmServices.cos.getProvider() === 'ibm-cos') {
+    return ibmServices.cos.create();
   }
-  return getStorageAdapter();
+  return new (require('../lib/storage/MockStorageAdapter').MockStorageAdapter)();
 }
 
 router.post('/upload-url', requireAuth, requirePracticeMembership(['owner','admin','practitioner','nurse','receptionist']), async (req: any, res: any, next: any) => {
