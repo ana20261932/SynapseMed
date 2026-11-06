@@ -1,6 +1,18 @@
 import React from 'react';
 import { Button } from './Button';
 
+// ── Close icon ─────────────────────────────────────────────────────────────
+
+function CloseIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
+// ── Modal ──────────────────────────────────────────────────────────────────
+
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -9,46 +21,43 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
+const modalMaxWidth: Record<string, string> = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-xl',
+};
+
 export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
   if (!isOpen) return null;
-
-  const sizes: Record<string, string> = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="sk-modal-overlay" onClick={onClose}>
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div
-        className={`relative ${sizes[size]} bg-white rounded-3xl shadow-2xl border border-clinic-200 max-w-[90vw] max-h-[90vh] flex flex-col`}
+        className={`sk-modal w-full ${modalMaxWidth[size]}`}
         role="dialog"
         aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
       >
         {title && (
-          <div className="px-6 py-5 border-b border-clinic-100 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-clinic-900">{title}</h2>
+          <div className="sk-modal-header">
+            <h2 className="sk-modal-title">{title}</h2>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-clinic-100 rounded-lg text-clinic-500 hover:text-clinic-900 transition-colors"
+              className="sk-btn sk-btn-ghost sk-btn-sm p-1.5"
               aria-label="Close"
+              style={{ borderRadius: 'var(--radius-md)' }}
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <CloseIcon />
             </button>
           </div>
         )}
-        <div className={`flex-1 overflow-y-auto p-6 ${title ? '' : 'pt-6'}`}>{children}</div>
+        <div className="sk-modal-body">{children}</div>
       </div>
     </div>
   );
 }
+
+// ── ConfirmDialog ──────────────────────────────────────────────────────────
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -72,17 +81,16 @@ export function ConfirmDialog({
   danger = false,
 }: ConfirmDialogProps) {
   if (!isOpen) return null;
-
   return (
     <Modal isOpen={isOpen} onClose={onCancel} title={title} size="sm">
-      <p className="text-clinic-700 mb-6">{message}</p>
-      <div className="flex gap-3">
-        <Button variant="outline" onClick={onCancel}>
-          {cancelText}
-        </Button>
-        <Button variant={danger ? 'danger' : 'primary'} onClick={onConfirm}>
-          {confirmText}
-        </Button>
+      {message && (
+        <p className="mb-5 text-sm" style={{ color: 'var(--color-fg-muted)' }}>
+          {message}
+        </p>
+      )}
+      <div className="flex gap-3 justify-end">
+        <Button variant="outline" onClick={onCancel}>{cancelText}</Button>
+        <Button variant={danger ? 'destructive' : 'primary'} onClick={onConfirm}>{confirmText}</Button>
       </div>
     </Modal>
   );

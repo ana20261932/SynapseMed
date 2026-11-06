@@ -306,7 +306,7 @@ describe('Transcription — consent gate and lifecycle (Milestone 6)', () => {
     expect(res.status).toBe(200);
     expect(res.body.data.consentGranted).toBe(true);
     expect(res.body.data.status).toBe('completed');
-    expect(res.body.data.transcriptDraft).toContain('[MOCK TRANSCRIPT]');
+    expect(res.body.data.transcriptDraft).toContain('[MOCK TRANSCRIPT DRAFT]');
     expect(res.body.data._warning).toContain('DRAFT');
   });
 

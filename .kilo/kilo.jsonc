@@ -1,0 +1,77 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "snapshot": false,
+
+  // IBM Cloud provider settings for SynapseMed.
+  // These are references to env var names — actual values go in apps/api/.env only.
+  // Never put real credentials in this file.
+  "providers": {
+    // IBM watsonx.ai — foundation model inference
+    "watsonx": {
+      "env": {
+        "apiKey": "WATSONX_API_KEY",
+        "projectId": "WATSONX_PROJECT_ID",
+        "modelId": "WATSONX_MODEL_ID",
+        "url": "WATSONX_URL"
+      },
+      "defaults": {
+        "modelId": "ibm/granite-13b-chat-v2",
+        "url": "https://us-south.ml.cloud.ibm.com"
+      },
+      "docs": "https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api.html"
+    },
+
+    // IBM Cloudant — NoSQL document store
+    "cloudant": {
+      "env": {
+        "url": "CLOUDANT_URL",
+        "apiKey": "CLOUDANT_API_KEY",
+        "dbName": "CLOUDANT_DB_NAME"
+      },
+      "defaults": {
+        "dbName": "synapsemed"
+      },
+      "docs": "https://cloud.ibm.com/docs/Cloudant"
+    },
+
+    // IBM Cloud Object Storage — file/document storage
+    "cos": {
+      "env": {
+        "endpoint": "IBM_COS_ENDPOINT",
+        "bucket": "IBM_COS_BUCKET",
+        "apiKey": "IBM_COS_API_KEY",
+        "serviceInstanceCrn": "IBM_COS_SERVICE_INSTANCE_CRN",
+        "region": "IBM_COS_REGION",
+        "hmacAccessKeyId": "IBM_COS_HMAC_ACCESS_KEY_ID",
+        "hmacSecretAccessKey": "IBM_COS_HMAC_SECRET_ACCESS_KEY"
+      },
+      "defaults": {
+        "region": "us-south"
+      },
+      "docs": "https://cloud.ibm.com/docs/cloud-object-storage"
+    },
+
+    // IBM Watson Assistant — conversational AI / patient intake
+    "watson-assistant": {
+      "env": {
+        "url": "WATSON_ASSISTANT_URL",
+        "apiKey": "WATSON_ASSISTANT_API_KEY",
+        "assistantId": "WATSON_ASSISTANT_ASSISTANT_ID"
+      },
+      "docs": "https://cloud.ibm.com/docs/watson-assistant"
+    },
+
+    // IBM Watson Speech to Text — clinical dictation
+    "watson-stt": {
+      "env": {
+        "url": "WATSON_SPEECH_TO_TEXT_URL",
+        "apiKey": "WATSON_SPEECH_TO_TEXT_API_KEY",
+        "model": "WATSON_SPEECH_TO_TEXT_MODEL"
+      },
+      "defaults": {
+        "model": "en-US_BroadbandModel"
+      },
+      "docs": "https://cloud.ibm.com/docs/speech-to-text"
+    }
+  }
+}

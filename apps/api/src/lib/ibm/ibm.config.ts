@@ -21,14 +21,18 @@
 import { CloudantAdapter } from '../cloudant/CloudantAdapter';
 import { CloudObjectStorageAdapter } from '../storage/CloudObjectStorageAdapter';
 import { MockStorageAdapter } from '../storage/MockStorageAdapter';
+import { WatsonAssistantAdapter } from '../assistant/WatsonAssistantAdapter';
 import { MockWatsonAssistantAdapter } from '../assistant/MockWatsonAssistantAdapter';
+import { WatsonSpeechToTextAdapter } from '../transcription/WatsonSpeechToTextAdapter';
 import { MockSpeechToTextAdapter } from '../transcription/MockSpeechToTextAdapter';
 import { WatsonxProvider } from '../ai/providers/WatsonxProvider';
 import { OpencodeProvider } from '../ai/providers/OpencodeProvider';
 import { GeminiProvider } from '../ai/providers/GeminiProvider';
 import { MockAIProvider } from '../ai/providers/MockAIProvider';
 import { IAIProvider } from '../ai/providers/types';
-import { IAIProvider as AIProviderType } from '../ai/providers/types';
+import { IWatsonAssistantAdapter } from '../assistant/IWatsonAssistantAdapter';
+import { ISpeechToTextAdapter } from '../transcription/ISpeechToTextAdapter';
+import { IStorageAdapter } from '../storage/IStorageAdapter';
 
 // ── IBM Cloudant ────────────────────────────────────────────────────────────
 
@@ -56,20 +60,16 @@ export function isCloudantConfigured(): boolean {
 export interface COSConfig {
   endpoint?: string;
   bucket?: string;
-  instanceId?: string;
   apiKey?: string;
   serviceInstanceCrn?: string;
+  region?: string;
 }
 
-export function createCOSAdapter(config?: COSConfig): CloudObjectStorageAdapter {
-  const cfg = config ?? {
-    endpoint: process.env.IBM_COS_ENDPOINT,
-    bucket: process.env.IBM_COS_BUCKET,
-    instanceId: process.env.IBM_COS_INSTANCE_ID,
-    apiKey: process.env.IBM_COS_API_KEY,
-    serviceInstanceCrn: process.env.IBM_COS_SERVICE_INSTANCE_CRN,
-  };
-  return new CloudObjectStorageAdapter();
+export function createCOSAdapter(config?: COSConfig): IStorageAdapter {
+  if (isCOSConfigured()) {
+    return new CloudObjectStorageAdapter(config);
+  }
+  return new MockStorageAdapter();
 }
 
 export function isCOSConfigured(): boolean {
@@ -83,6 +83,7 @@ export function isCOSConfigured(): boolean {
 export function getStorageProvider(): 'ibm-cos' | 'mock' {
   const provider = (process.env.OBJECT_STORAGE_PROVIDER || process.env.STORAGE_PROVIDER || 'mock').toLowerCase();
   if (provider === 'ibm-cos' || provider === 'cos') return 'ibm-cos';
+  if (isCOSConfigured()) return 'ibm-cos';
   return 'mock';
 }
 
@@ -94,18 +95,23 @@ export interface WatsonAssistantConfig {
   assistantId?: string;
 }
 
-export function createWatsonAssistantAdapter(config?: WatsonAssistantConfig) {
-  const cfg = config ?? {
-    url: process.env.WATSON_ASSISTANT_URL,
-    apiKey: process.env.WATSON_ASSISTANT_API_KEY,
-    assistantId: process.env.WATSON_ASSISTANT_ASSISTANT_ID,
-  };
-  // Real adapter not yet implemented — falls back to mock until @ibm-cloud/watson-assistant SDK is wired.
+export function createWatsonAssistantAdapter(config?: WatsonAssistantConfig): IWatsonAssistantAdapter {
+  const url = config?.url ?? process.env.WATSON_ASSISTANT_URL;
+  const apiKey = config?.apiKey ?? process.env.WATSON_ASSISTANT_API_KEY;
+  const assistantId = config?.assistantId ?? process.env.WATSON_ASSISTANT_ASSISTANT_ID;
+
+  if (url && apiKey && assistantId) {
+    return new WatsonAssistantAdapter({ url, apiKey, assistantId });
+  }
   return new MockWatsonAssistantAdapter();
 }
 
 export function isWatsonAssistantConfigured(): boolean {
-  return Boolean(process.env.WATSON_ASSISTANT_URL && process.env.WATSON_ASSISTANT_API_KEY);
+  return Boolean(
+    process.env.WATSON_ASSISTANT_URL &&
+    process.env.WATSON_ASSISTANT_API_KEY &&
+    process.env.WATSON_ASSISTANT_ASSISTANT_ID
+  );
 }
 
 // ── IBM Watson Speech to Text ───────────────────────────────────────────────
@@ -113,14 +119,20 @@ export function isWatsonAssistantConfigured(): boolean {
 export interface SpeechToTextConfig {
   url?: string;
   apiKey?: string;
+  model?: string;
 }
 
-export function createSpeechToTextAdapter(config?: SpeechToTextConfig) {
-  const cfg = config ?? {
-    url: process.env.WATSON_SPEECH_TO_TEXT_URL,
-    apiKey: process.env.WATSON_SPEECH_TO_TEXT_API_KEY,
-  };
-  // Real adapter not yet implemented — falls back to mock until @ibm-cloud/speech-to-text SDK is wired.
+export function createSpeechToTextAdapter(config?: SpeechToTextConfig): ISpeechToTextAdapter {
+  const url = config?.url ?? process.env.WATSON_SPEECH_TO_TEXT_URL;
+  const apiKey = config?.apiKey ?? process.env.WATSON_SPEECH_TO_TEXT_API_KEY;
+
+  if (url && apiKey) {
+    return new WatsonSpeechToTextAdapter({
+      url,
+      apiKey,
+      model: config?.model ?? process.env.WATSON_SPEECH_TO_TEXT_MODEL,
+    });
+  }
   return new MockSpeechToTextAdapter();
 }
 
@@ -202,8 +214,8 @@ export function getIBMServiceStatus(): IBMServiceStatus {
   return {
     cloudant: { configured: isCloudantConfigured(), mock: !isCloudantConfigured() },
     cos: { configured: isCOSConfigured(), mock: getStorageProvider() === 'mock' },
-    watsonAssistant: { configured: isWatsonAssistantConfigured(), mock: true },
-    speechToText: { configured: isSpeechToTextConfigured(), mock: true },
+    watsonAssistant: { configured: isWatsonAssistantConfigured(), mock: !isWatsonAssistantConfigured() },
+    speechToText: { configured: isSpeechToTextConfigured(), mock: !isSpeechToTextConfigured() },
     watsonx: { configured: isWatsonxConfigured(), mock: !isWatsonxConfigured() },
     aiProvider: { id: aiProvider.name, configured: !aiProvider.isMock, mock: aiProvider.isMock },
   };

@@ -176,6 +176,33 @@ const server = new Server(
   },
 );
 
+// IBM service configuration check (reads env vars — no network calls)
+const IBM_SERVICES = [
+  { key: 'cloudant', label: 'IBM Cloudant', vars: ['CLOUDANT_URL', 'CLOUDANT_API_KEY', 'CLOUDANT_DB_NAME'] },
+  { key: 'cos', label: 'IBM Cloud Object Storage', vars: ['IBM_COS_ENDPOINT', 'IBM_COS_BUCKET', 'IBM_COS_API_KEY', 'IBM_COS_SERVICE_INSTANCE_CRN', 'IBM_COS_REGION', 'IBM_COS_HMAC_ACCESS_KEY_ID', 'IBM_COS_HMAC_SECRET_ACCESS_KEY'] },
+  { key: 'watson_assistant', label: 'IBM Watson Assistant', vars: ['WATSON_ASSISTANT_URL', 'WATSON_ASSISTANT_API_KEY', 'WATSON_ASSISTANT_ASSISTANT_ID'] },
+  { key: 'watson_stt', label: 'IBM Watson Speech to Text', vars: ['WATSON_SPEECH_TO_TEXT_URL', 'WATSON_SPEECH_TO_TEXT_API_KEY', 'WATSON_SPEECH_TO_TEXT_MODEL'] },
+  { key: 'watsonx', label: 'IBM watsonx.ai', vars: ['WATSONX_API_KEY', 'WATSONX_PROJECT_ID', 'WATSONX_MODEL_ID', 'WATSONX_URL'] },
+  { key: 'ai_gateway', label: 'AI Gateway', vars: ['AI_PROVIDER', 'GEMINI_API_KEY', 'OPENCODE_API_KEY'] },
+];
+
+function getIBMEnvStatus() {
+  return IBM_SERVICES.map(svc => {
+    const vars = svc.vars.map(v => ({
+      name: v,
+      set: Boolean(process.env[v]),
+      value: process.env[v] ? (v.toLowerCase().includes('key') || v.toLowerCase().includes('secret') || v.toLowerCase().includes('crn') ? '[SET]' : process.env[v]) : '',
+    }));
+    const required = svc.vars.filter(v => !v.includes('MODEL') && !v.includes('REGION') && !v.includes('URL') && !v.includes('PROVIDER'));
+    const configured = required.length === 0 || required.every(v => Boolean(process.env[v]));
+    return { key: svc.key, label: svc.label, configured, vars };
+  });
+}
+
+const IBMServiceInputSchema = z.object({
+  service: z.enum(['cloudant', 'cos', 'watson_assistant', 'watson_stt', 'watsonx', 'ai_gateway', 'all']).optional(),
+});
+
 // Register ListTools handler
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   const tools = [
@@ -198,6 +225,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       name: 'mcps_list',
       description: 'List configured MCP servers and their transport types.',
       inputSchema: z.object({}),
+    },
+    {
+      name: 'ibm_services_status',
+      description: 'Check the configuration status of all IBM Cloud services (Cloudant, COS, Watson Assistant, Watson STT, watsonx.ai). Shows which env vars are set without revealing secret values.',
+      inputSchema: IBMServiceInputSchema,
+    },
+    {
+      name: 'ibm_setup_guide',
+      description: 'Get step-by-step setup instructions for a specific IBM Cloud service.',
+      inputSchema: IBMServiceInputSchema,
     },
   ];
   return ListToolsResultSchema.parse({ tools });
@@ -268,10 +305,136 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           type: 'local',
           transport: 'http+sse',
           endpoint: 'http://0.0.0.0:3333/mcp/sse',
-          description: 'Exposes all Kilo skills as MCP tools: skills_list, skills_get, skills_categories, mcps_list',
-          tools: ['skills_list', 'skills_get', 'skills_categories', 'mcps_list'],
+          description: 'Exposes all Kilo skills as MCP tools: skills_list, skills_get, skills_categories, mcps_list, ibm_services_status, ibm_setup_guide',
+          tools: ['skills_list', 'skills_get', 'skills_categories', 'mcps_list', 'ibm_services_status', 'ibm_setup_guide'],
         },
       ] }, null, 2) }],
+    });
+  }
+
+  if (name === 'ibm_services_status') {
+    const parsed = IBMServiceInputSchema.parse(args ?? {});
+    const all = getIBMEnvStatus();
+    const results = parsed.service && parsed.service !== 'all'
+      ? all.filter(s => s.key === parsed.service)
+      : all;
+    const summary = results.map(s => ({
+      service: s.label,
+      configured: s.configured,
+      mock_fallback: !s.configured,
+      vars: s.vars,
+    }));
+    return CallToolResultSchema.parse({
+      content: [{ type: 'text', text: JSON.stringify({ ibm_services: summary, note: 'Secret values shown as [SET]. No network calls are made.' }, null, 2) }],
+    });
+  }
+
+  if (name === 'ibm_setup_guide') {
+    const parsed = IBMServiceInputSchema.parse(args ?? {});
+    const guides: Record<string, string> = {
+      cloudant: `IBM Cloudant Setup
+─────────────────
+1. Log in to https://cloud.ibm.com
+2. Search catalog for "Cloudant" → Create instance (Lite plan, 1 GB free)
+3. After creation: Manage → Service credentials → New credential (role: Manager)
+4. Copy the "url" and "apikey" fields from the credential JSON
+5. Set in apps/api/.env:
+   CLOUDANT_URL=https://<instance>.cloudantnosqldb.appdomain.cloud
+   CLOUDANT_API_KEY=<apikey>
+   CLOUDANT_DB_NAME=synapsemed
+6. Create the database: from the Cloudant dashboard → Databases → Create database → "synapsemed"
+7. Optional: enable Mango indexes for query performance`,
+
+      cos: `IBM Cloud Object Storage Setup
+──────────────────────────────
+1. Log in to https://cloud.ibm.com
+2. Search catalog for "Object Storage" → Create instance (Lite plan, 25 GB free)
+3. Create a bucket in your preferred region (e.g. us-south)
+4. Service credentials → New credential → check "Include HMAC credential" → role: Writer
+5. Note the "cos_hmac_keys" (access_key_id + secret_access_key) and "resource_instance_id" (CRN)
+6. Set in apps/api/.env:
+   IBM_COS_ENDPOINT=https://s3.<region>.cloud-object-storage.appdomain.cloud
+   IBM_COS_BUCKET=<your-bucket-name>
+   IBM_COS_API_KEY=<apikey>
+   IBM_COS_SERVICE_INSTANCE_CRN=<resource_instance_id>
+   IBM_COS_REGION=<region>  (e.g. us-south)
+   IBM_COS_HMAC_ACCESS_KEY_ID=<access_key_id>
+   IBM_COS_HMAC_SECRET_ACCESS_KEY=<secret_access_key>`,
+
+      watson_assistant: `IBM Watson Assistant Setup
+──────────────────────────
+1. Log in to https://cloud.ibm.com
+2. Search catalog for "Watson Assistant" → Create instance (Lite plan: 10k messages/month)
+3. Launch the Watson Assistant tool → Create assistant → give it a name
+4. Assistant settings → API details → copy "Assistant ID" and "Service URL"
+5. IBM Cloud resource page → Service credentials → New credential → copy "apikey"
+6. Set in apps/api/.env:
+   WATSON_ASSISTANT_URL=https://api.<region>.assistant.watson.cloud.ibm.com
+   WATSON_ASSISTANT_API_KEY=<apikey>
+   WATSON_ASSISTANT_ASSISTANT_ID=<assistant-id>
+7. Build intents/entities for: appointment booking, intake forms, FAQ responses`,
+
+      watson_stt: `IBM Watson Speech to Text Setup
+────────────────────────────────
+1. Log in to https://cloud.ibm.com
+2. Search catalog for "Speech to Text" → Create instance (Lite plan: 500 minutes/month)
+3. IBM Cloud resource page → Service credentials → New credential → copy "url" and "apikey"
+4. Set in apps/api/.env:
+   WATSON_SPEECH_TO_TEXT_URL=https://api.<region>.speech-to-text.watson.cloud.ibm.com
+   WATSON_SPEECH_TO_TEXT_API_KEY=<apikey>
+   WATSON_SPEECH_TO_TEXT_MODEL=en-US_BroadbandModel
+5. Supported models: en-US_BroadbandModel, en-GB_BroadbandModel, en-AU_BroadbandModel
+   (No en-ZA model available — use en-GB for South African English)
+6. Audio must be submitted with patient consent (see transcription routes)`,
+
+      watsonx: `IBM watsonx.ai Setup
+─────────────────────
+1. Log in to https://dataplatform.cloud.ibm.com (IBM watsonx)
+2. Create a project: New project → create
+3. Note the Project ID from: project → Manage → General
+4. Get an IBM Cloud IAM API key: https://cloud.ibm.com/iam/apikeys → Create
+5. Set in apps/api/.env:
+   WATSONX_API_KEY=<iam-api-key>
+   WATSONX_PROJECT_ID=<project-id>
+   WATSONX_MODEL_ID=ibm/granite-13b-chat-v2
+   WATSONX_URL=https://us-south.ml.cloud.ibm.com
+   AI_PROVIDER=watsonx
+6. Available models (Lite/free access): ibm/granite-13b-chat-v2, ibm/granite-3-8b-instruct
+   Paid/partner models: meta-llama/llama-3-70b-instruct, mistralai/mixtral-8x7b-instruct-v01`,
+
+      ai_gateway: `AI Gateway Setup
+─────────────────
+The AI gateway routes requests to: mock | watsonx | gemini | opencode
+Set AI_PROVIDER in apps/api/.env to select the provider.
+
+Per-practice settings override the global provider (PracticeAISettings in the DB).
+
+Mock (default — no credentials needed):
+  AI_PROVIDER=mock
+
+IBM watsonx.ai (see ibm_setup_guide for watsonx):
+  AI_PROVIDER=watsonx
+
+Google Gemini (free tier):
+  AI_PROVIDER=gemini
+  GEMINI_API_KEY=<key from https://makersuite.google.com/app/apikey>
+  GEMINI_MODEL=gemini-1.5-flash
+
+Opencode (free):
+  AI_PROVIDER=opencode
+  OPENCODE_API_KEY=<key from opencode.ai>`,
+    };
+
+    const service = parsed.service && parsed.service !== 'all' ? parsed.service : null;
+    if (service && guides[service]) {
+      return CallToolResultSchema.parse({
+        content: [{ type: 'text', text: guides[service] }],
+      });
+    }
+    // Return all guides
+    const allGuides = Object.entries(guides).map(([k, v]) => `\n${'='.repeat(60)}\n${v}`).join('\n');
+    return CallToolResultSchema.parse({
+      content: [{ type: 'text', text: `SynapseMed IBM Cloud Setup Guides\n${allGuides}` }],
     });
   }
 

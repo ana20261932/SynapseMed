@@ -1,5 +1,7 @@
 import React from 'react';
-import { Card } from './Card';
+import { Card, CardTitle } from './Card';
+
+// ── Table ──────────────────────────────────────────────────────────────────
 
 interface TableProps {
   columns: string[];
@@ -9,35 +11,44 @@ interface TableProps {
   emptyMessage?: string;
 }
 
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div
+      className="flex flex-col items-center justify-center py-12 text-center"
+      style={{ color: 'var(--color-fg-subtle)' }}
+    >
+      <svg className="w-10 h-10 mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4m8-5v5" />
+      </svg>
+      <p className="text-sm">{message}</p>
+    </div>
+  );
+}
+
 export function Table({ columns, data, rowKey = 'id', renderCell, emptyMessage = 'No records found.' }: TableProps) {
   if (data.length === 0) {
     return (
-      <div className="bg-white border border-clinic-200 rounded-2xl p-8 text-center">
-        <p className="text-clinic-500 text-sm">{emptyMessage}</p>
+      <div className="sk-card">
+        <EmptyState message={emptyMessage} />
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden border border-clinic-200 rounded-2xl bg-white shadow-card">
-      <table className="w-full text-left border-collapse">
+    <div className="overflow-hidden rounded-2xl" style={{ border: '1px solid var(--color-border-default)', background: 'var(--color-bg-surface)', boxShadow: 'var(--shadow-sm)' }}>
+      <table className="sk-table">
         <thead>
           <tr>
             {columns.map((col) => (
-              <th
-                key={col}
-                className="bg-clinic-50 border-b border-clinic-200 px-4 py-3 text-xs font-semibold text-clinic-500 uppercase tracking-wider"
-              >
-                {col}
-              </th>
+              <th key={col}>{col}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {data.map((row) => (
-            <tr key={String(row[rowKey])} className="border-b border-clinic-100 last:border-0 hover:bg-clinic-50 transition-colors">
+            <tr key={String(row[rowKey] ?? Math.random())}>
               {columns.map((col) => (
-                <td key={col} className="px-4 py-3 text-sm text-clinic-700">
+                <td key={col}>
                   {renderCell ? renderCell(row, col) : String(row[col] ?? '-')}
                 </td>
               ))}
@@ -48,6 +59,8 @@ export function Table({ columns, data, rowKey = 'id', renderCell, emptyMessage =
     </div>
   );
 }
+
+// ── DataTable ──────────────────────────────────────────────────────────────
 
 interface DataTableProps {
   title?: string;
@@ -61,10 +74,10 @@ interface DataTableProps {
 export function DataTable({ title, columns, data, renderCell, emptyMessage, actions }: DataTableProps) {
   return (
     <Card className="mb-6">
-      {title || actions && (
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-clinic-900">{title}</h3>
-          {actions}
+      {(title || actions) && (
+        <div className="flex items-center justify-between mb-5">
+          {title && <CardTitle>{title}</CardTitle>}
+          {actions && <div>{actions}</div>}
         </div>
       )}
       <Table columns={columns} data={data} renderCell={renderCell} emptyMessage={emptyMessage} />

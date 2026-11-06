@@ -8,55 +8,94 @@ interface HeaderProps {
 }
 
 export function Header({ user, practice, onMenuClick }: HeaderProps) {
+  const initials = [user?.firstName?.[0], user?.lastName?.[0]].filter(Boolean).join('').toUpperCase() || 'U';
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-clinic-200">
-      <div className="flex items-center justify-between px-6 py-3">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onMenuClick}
-            className="p-2 hover:bg-clinic-100 rounded-lg text-clinic-600 hover:text-clinic-900 transition-colors md:hidden"
-            aria-label="Toggle navigation"
+    <header className="sk-topbar fixed top-0 left-0 right-0 z-50 h-14">
+      <div className="flex items-center h-full px-4 gap-3">
+
+        {/* Mobile menu button */}
+        <button
+          onClick={onMenuClick}
+          className="sk-btn sk-btn-ghost sk-btn-sm md:hidden"
+          aria-label="Toggle navigation"
+          style={{ padding: '6px' }}
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
+        {/* Brand (shown on mobile, hidden on desktop where sidebar shows it) */}
+        <div className="flex items-center gap-2 md:hidden">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-sm font-bold"
+            style={{ background: 'var(--color-accent-default)' }}
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <div className="hidden md:flex items-center gap-2">
-            <div className="w-8 h-8 bg-synapse-600 rounded-xl flex items-center justify-center text-white text-lg">
-              S
-            </div>
-            <span className="font-bold text-xl text-clinic-900 tracking-tight">SynapseMed</span>
+            S
+          </div>
+          <span className="font-bold text-base tracking-tight" style={{ color: 'var(--color-fg-default)' }}>
+            SynapseMed
+          </span>
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Practice pill */}
+        <div
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium"
+          style={{
+            background: 'var(--color-bg-subtle)',
+            border: '1px solid var(--color-border-default)',
+            color: 'var(--color-fg-muted)',
+            borderRadius: 'var(--radius-md)',
+          }}
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--color-fg-subtle)' }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+          <span>{practice?.name || 'No practice selected'}</span>
+        </div>
+
+        {/* Online indicator */}
+        <div
+          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
+          style={{
+            background: 'var(--color-bg-subtle)',
+            border: '1px solid var(--color-border-default)',
+            color: 'var(--color-fg-muted)',
+            borderRadius: 'var(--radius-md)',
+          }}
+        >
+          <span
+            className="w-1.5 h-1.5 rounded-full animate-pulse"
+            style={{ background: 'var(--color-accent-default)' }}
+          />
+          Online
+        </div>
+
+        {/* User avatar */}
+        <div
+          className="hidden md:flex items-center gap-2 pl-3"
+          style={{ borderLeft: '1px solid var(--color-border-default)' }}
+        >
+          <div className="text-right hidden lg:block">
+            <p className="text-xs font-semibold leading-tight" style={{ color: 'var(--color-fg-default)' }}>
+              {user?.firstName} {user?.lastName}
+            </p>
+            <p className="text-[10px] leading-tight" style={{ color: 'var(--color-fg-subtle)' }}>
+              {user?.email}
+            </p>
+          </div>
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
+            style={{ background: 'var(--color-accent-muted)', color: 'var(--color-accent-fg)' }}
+          >
+            {initials}
           </div>
         </div>
 
-        <div className="hidden md:flex items-center gap-6">
-          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-clinic-50 border border-clinic-200 text-clinic-700 text-sm font-medium">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-            {practice?.name || 'No practice selected'}
-          </div>
-          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-clinic-50 border border-clinic-200 text-clinic-700 text-sm font-medium">
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-synapse-500 animate-pulse" />
-              <span className="text-clinic-600">Online</span>
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="hidden md:flex items-center gap-3 px-4 py-2 rounded-xl bg-clinic-50 border border-clinic-200">
-            <div className="flex flex-col">
-              <p className="text-xs font-semibold text-clinic-900">{user?.firstName} {user?.lastName}</p>
-              <p className="text-xs text-clinic-500">{user?.email}</p>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-clinic-200 overflow-hidden flex items-center justify-center">
-              <span className="text-sm font-semibold text-clinic-700">
-                {user?.firstName?.charAt(0) || 'U'}{user?.lastName?.charAt(0) || ''}
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
     </header>
   );

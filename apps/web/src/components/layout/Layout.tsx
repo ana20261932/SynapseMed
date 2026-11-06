@@ -34,7 +34,7 @@ export function Layout({ children, user, practices, activePractice, onPracticeCh
         practice={activePractice}
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
       />
-      <main className={`transition-all duration-300 md:pl-72 pt-16 pb-12 px-4 sm:px-6 lg:px-8`}>
+      <main className={`transition-all duration-300 md:pl-64 pt-14 pb-12 px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-7xl mx-auto">
           {children}
         </div>

@@ -6,18 +6,19 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   padding?: 'none' | 'sm' | 'md' | 'lg';
 }
 
-export function Card({ children, hover = false, padding = 'md', className = '', ...props }: CardProps) {
-  const paddings: Record<string, string> = {
-    none: 'p-0',
-    sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-8',
-  };
+const paddingClass: Record<string, string> = {
+  none: 'p-0',
+  sm:   'p-4',
+  md:   'p-6',
+  lg:   'p-8',
+};
+
+export function Card({ children, hover = false, padding = 'md', className = '', style, ...props }: CardProps) {
+  const padClass = padding === 'md' ? '' : paddingClass[padding]; // md is handled by .sk-card default
   return (
     <div
-      className={`bg-white border border-clinic-200 rounded-2xl shadow-card transition-shadow duration-200 ${
-        hover ? 'hover:shadow-card-hover' : ''
-      } ${paddings[padding]} ${className}`}
+      className={`sk-card ${hover ? 'sk-card-hover' : ''} ${padClass} ${className}`}
+      style={padding === 'md' ? style : { padding: undefined, ...style }}
       {...props}
     >
       {children}
@@ -31,7 +32,7 @@ interface CardHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function CardHeader({ children, className = '', ...props }: CardHeaderProps) {
   return (
-    <div className={`mb-4 ${className}`} {...props}>
+    <div className={`mb-5 ${className}`} {...props}>
       {children}
     </div>
   );
@@ -43,7 +44,11 @@ interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
 
 export function CardTitle({ children, className = '', ...props }: CardTitleProps) {
   return (
-    <h3 className={`text-lg font-semibold text-clinic-900 ${className}`} {...props}>
+    <h3
+      className={`text-base font-semibold ${className}`}
+      style={{ color: 'var(--color-fg-default)' }}
+      {...props}
+    >
       {children}
     </h3>
   );
@@ -63,7 +68,11 @@ interface CardFooterProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function CardFooter({ children, className = '', ...props }: CardFooterProps) {
   return (
-    <div className={`mt-6 flex items-center justify-between border-t border-clinic-100 pt-4 ${className}`} {...props}>
+    <div
+      className={`mt-5 flex items-center justify-between pt-4 ${className}`}
+      style={{ borderTop: '1px solid var(--color-border-default)' }}
+      {...props}
+    >
       {children}
     </div>
   );

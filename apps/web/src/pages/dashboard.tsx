@@ -79,67 +79,80 @@ export default function DashboardPage() {
         onPracticeChange={handlePracticeChange}
         onLogout={logout}
       >
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
+        <div className="py-8">
+          {/* ── Header ── */}
+          <div className="flex items-start justify-between mb-6 gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-clinic-900">Practice Dashboard</h1>
-              <p className="text-clinic-500 text-sm">{activePractice?.name}</p>
-              <p className="text-xs text-synapse-600 mt-1">{professionLabel} • {activePractice?.role}</p>
+              <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--color-fg-default)' }}>
+                Practice Dashboard
+              </h1>
+              <p className="text-sm mt-1" style={{ color: 'var(--color-fg-muted)' }}>
+                {activePractice?.name} &middot; {professionLabel} &middot;{' '}
+                <span className="capitalize">{activePractice?.role}</span>
+              </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex items-center gap-2 shrink-0">
               <Badge variant={user?.professionalProfile?.registrationStatus === 'verified' ? 'verified' : 'warning'}>
                 {user?.professionalProfile?.registrationStatus?.replace(/_/g, ' ').toUpperCase() || 'UNVERIFIED'}
               </Badge>
-              <Button variant="outline" onClick={() => setAddPatientOpen(true)}>
+              <Button size="sm" variant="primary" onClick={() => setAddPatientOpen(true)}>
                 + New Patient
               </Button>
             </div>
           </div>
 
-          <div className="dev-banner">
-            ⚠️ Development environment — synthetic data only. Not for clinical use.
+          {/* ── Dev banner ── */}
+          <div className="sk-dev-banner mb-6">
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            Development environment — synthetic data only. Not for clinical use.
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard title="Total Patients" value={patients.length} change="+12" trend="up" />
-            <StatCard title="Active Modules" value={activeModules} trend="neutral" />
-            <StatCard title="Today's Appointments" value={8} change="+3" trend="up" />
-            <StatCard title="Pending Claims" value={2} change="-1" trend="down" />
+          {/* ── Stat cards ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
+            <StatCard title="Total Patients"       value={patients.length} change="+12"  trend="up"      description="vs last month" />
+            <StatCard title="Active Modules"       value={activeModules}   trend="neutral" />
+            <StatCard title="Today's Appointments" value={8}               change="+3"   trend="up"      description="today" />
+            <StatCard title="Pending Claims"       value={2}               change="−1"   trend="down"    description="vs yesterday" />
           </div>
 
-          {/* Quick Actions */}
-          <Card className="mb-8">
-            <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between mb-6">
-              <div>
-                <CardTitle>Quick Actions</CardTitle>
-                <p className="text-clinic-500 text-sm">Common tasks for {professionLabel.toLowerCase()}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              <Button variant="outline" className="w-full text-left justify-start" onClick={() => router.push('/patients')}>
-                <span className="text-2xl mb-2 block">👤</span>
-                Manage Patients
-              </Button>
-              <Button variant="outline" className="w-full text-left justify-start" onClick={() => router.push('/appointments')}>
-                <span className="text-2xl mb-2 block">📅</span>
-                Appointments
-              </Button>
-              <Button variant="outline" className="w-full text-left justify-start" onClick={() => router.push('/billing')}>
-                <span className="text-2xl mb-2 block">💳</span>
-                Billing & Claims
-              </Button>
-              <Button variant="outline" className="w-full text-left justify-start">
-                <span className="text-2xl mb-2 block">📋</span>
-                Clinical Notes
-              </Button>
+          {/* ── Quick Actions ── */}
+          <Card className="mb-7">
+            <CardTitle className="mb-1">Quick Actions</CardTitle>
+            <p className="text-sm mb-4" style={{ color: 'var(--color-fg-muted)' }}>
+              Common tasks for {professionLabel.toLowerCase()}
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { icon: '👤', label: 'Patients',       path: '/patients' },
+                { icon: '📅', label: 'Appointments',   path: '/appointments' },
+                { icon: '💳', label: 'Billing',        path: '/billing' },
+                { icon: '📋', label: 'Clinical Notes', path: '' },
+              ].map(({ icon, label, path }) => (
+                <button
+                  key={label}
+                  onClick={() => path && router.push(path)}
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl text-sm font-medium transition-all duration-150 text-center"
+                  style={{
+                    background: 'var(--color-bg-subtle)',
+                    border: '1px solid var(--color-border-default)',
+                    color: 'var(--color-fg-default)',
+                    borderRadius: 'var(--radius-lg)',
+                    cursor: path ? 'pointer' : 'default',
+                  }}
+                >
+                  <span className="text-2xl">{icon}</span>
+                  <span>{label}</span>
+                </button>
+              ))}
             </div>
           </Card>
 
-          {/* Patients Table */}
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-clinic-900">Recent Patients</h2>
-            <Link href="/patients" className="text-sm text-synapse-600 hover:underline font-medium">View all →</Link>
+          {/* ── Recent Patients ── */}
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold" style={{ color: 'var(--color-fg-default)' }}>Recent Patients</h2>
+            <Link href="/patients" className="text-sm font-medium" style={{ color: 'var(--color-accent-fg)' }}>View all →</Link>
           </div>
           <Table
             columns={['Name', 'Date of Birth', 'Phone', 'Status']}
