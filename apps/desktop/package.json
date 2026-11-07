@@ -2,7 +2,12 @@
   "name": "@synapsemed/desktop",
   "version": "0.1.0",
   "private": true,
-  "description": "SynapseMed Desktop App - Electron",
+  "description": "SynapseMed Desktop — South African medical practice management",
+  "author": {
+    "name": "SynapseMed",
+    "email": "support@synapsemed.co.za",
+    "url": "https://synapsemed.co.za"
+  },
   "main": "src/main.js",
   "scripts": {
     "dev": "electron .",
@@ -10,29 +15,98 @@
     "build": "electron-builder",
     "build:linux": "electron-builder --linux",
     "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac"
+    "build:mac": "electron-builder --mac",
+    "build:all": "electron-builder --win --linux",
+    "postinstall": "electron-builder install-app-deps",
+    "icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
-    "electron-store": "^8.2.0"
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.3.9"
   },
   "devDependencies": {
     "electron": "^31.0.0",
     "electron-builder": "^24.13.3"
   },
   "build": {
-    "appId": "com.synapsemed.app",
+    "appId": "co.za.synapsemed.app",
     "productName": "SynapseMed",
+    "copyright": "Copyright © 2026 SynapseMed",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "assets"
     },
-    "linux": {
-      "target": ["AppImage", "deb"]
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "scripts/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraMetadata": {
+      "main": "src/main.js"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "ana20261932",
+      "repo": "SynapseMed",
+      "releaseType": "release"
     },
     "win": {
-      "target": ["nsis"]
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "publish": [
+        {
+          "provider": "github",
+          "owner": "ana20261932",
+          "repo": "SynapseMed",
+          "releaseType": "release"
+        }
+      ],
+      "artifactName": "SynapseMed-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SynapseMed",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "installerSidebar": "assets/installer-sidebar.bmp",
+      "license": "assets/license.txt",
+      "artifactName": "SynapseMed-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "SynapseMed-Portable-${version}.${ext}"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "assets/icon.png",
+      "category": "Office",
+      "artifactName": "SynapseMed-${version}.${ext}"
     },
     "mac": {
-      "target": ["dmg"]
+      "target": ["dmg"],
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.medical",
+      "artifactName": "SynapseMed-${version}.${ext}"
+    },
+    "dmg": {
+      "title": "SynapseMed ${version}"
     }
   }
 }

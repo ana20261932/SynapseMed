@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SynapseMed — South African Medical Practice Management & Clinical AI Platform</title>
+  <meta name="description" content="Streamline your medical practice, automate clinical notes with AI, and enhance patient care with South Africa's most trusted healthcare practice management platform. Early access." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .synapse-gradient { background: linear-gradient(135deg, #0ea5e9 0%, #0891b2 100%); }
+    .synapse-text { color: #0ea5e9; }
+    .badge-pulse { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+    .glass { background: rgba(255,255,255,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.9); }
+    .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); }
+    .hero-glow { position: absolute; top: -10%; left: -10%; width: 120%; height: 120%; background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, transparent 60%); z-index: 0; pointer-events: none; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+  <!-- Navbar -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-2 cursor-pointer">
+          <div class="w-9 h-9 synapse-gradient rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-synapse-200">S</div>
+          <span class="font-bold text-xl text-slate-900 tracking-tight">SynapseMed</span>
+        </div>
+
+        <div class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
+          <a href="#features" class="hover:text-sky-600 transition-colors">Features</a>
+          <a href="#pain-points" class="hover:text-sky-600 transition-colors">Pain Points</a>
+          <a href="#best-apps" class="hover:text-sky-600 transition-colors">Best Apps to Pair</a>
+          <a href="#pricing" class="hover:text-sky-600 transition-colors">Pricing</a>
+          <a href="#company" class="hover:text-sky-600 transition-colors">Company</a>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <a href="#early-access" class="hidden sm:block bg-sky-600 hover:bg-sky-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-lg shadow-sky-200">
+            Request Early Access
+          </a>
+          <a href="https://sysd-phi.vercel.app/" target="_blank" rel="noopener noreferrer" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors">
+            SynapseDigital Company
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+    <div class="hero-glow"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+
+      <!-- Early Access Badge -->
+      <div class="flex items-center justify-center mb-8">
+        <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-50 text-red-700 border border-red-100 text-xs font-bold tracking-wider badge-pulse shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+          EARLY ACCESS — LIMITED FOUNDING PRACTICES
+        </span>
+      </div>
+
+      <div class="text-center max-w-4xl mx-auto">
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-50 text-sky-700 text-sm font-medium border border-sky-100 mb-6 shadow-sm">
+          South African medical practice management &middot; POPIA-aligned &middot; Mock switch by default
+        </span>
+        <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold text-slate-900 tracking-tight mb-8 leading-[1.1]">
+          Run your practice.<br />
+          <span class="text-sky-600 italic">Bill medical aid with confidence.</span>
+        </h1>
+        <p class="text-lg sm:text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+          Patient records, scheduling, clinical notes, NAPPI-coded pharmacy inventory, and medical-aid switch billing — built for South African GPs, pharmacies, and multi-discipline practices. Start with mock data, go live when your switch contract is approved.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="#early-access" class="synapse-gradient text-white px-9 py-5 rounded-2xl text-lg font-bold transition-all hover:scale-105 shadow-xl shadow-sky-200 flex items-center justify-center gap-2">
+            Start Early Access <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+          </a>
+          <a href="https://sysd-phi.vercel.app/" target="_blank" rel="noopener noreferrer" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-9 py-5 rounded-2xl text-lg font-bold transition-all hover:scale-105 shadow-sm">
+            View SynapseDigital Company
+          </a>
+        </div>
+
+        <div class="mt-12 flex items-center justify-center gap-6 text-xs text-slate-400">
+          <div class="flex items-center gap-2"><span class="w-2 h-2 bg-emerald-500 rounded-full"></span>POPIA compliant</div>
+          <div class="flex items-center gap-2"><span class="w-2 h-2 bg-emerald-500 rounded-full"></span>SAHPRA-aware telehealth</div>
+          <div class="flex items-center gap-2"><span class="w-2 h-2 bg-emerald-500 rounded-full"></span>HL7 FHIR v4 ready</div>
+          <div class="flex items-center gap-2"><span class="w-2 h-2 bg-emerald-500 rounded-full"></span>Medical-aid switch</div>
+        </div>
+      </div>
+
+      <!-- Hero Visual -->
+      <div class="mt-16 relative">
+        <div class="absolute -inset-1 bg-sky-200 rounded-3xl blur-[100px]"></div>
+        <div class="relative rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-2xl relative z-10">
+          <div class="aspect-[4/3] bg-gradient-to-br from-sky-100 to-slate-100 flex items-center justify-center p-8">
+            <svg class="w-1/3 h-1/3 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <div class="p-8">
+            <h3 class="font-semibold text-slate-900 mb-2">SynapseMed Dashboard — tablet view</h3>
+            <p class="text-sm text-slate-500">Patient timeline, appointment calendar, switch claim status, and pharmacy inventory on one screen.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pain Points -->
+  <section id="pain-points" class="py-24 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-slate-900 mb-6">The daily reality of a South African practice</h2>
+        <p class="text-lg text-slate-600 max-w-2xl mx-auto">Disconnected records, slow medical-aid claims, manual inventory, and no unified view of switch billing. These aren't minor annoyances — they cost practices time, money, and patients.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="card-hover bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+          <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 mb-6">
+            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </div>
+          <h4 class="font-bold text-slate-900 mb-3 text-xl">Claims stuck in limbo</h4>
+          <p class="text-slate-600 leading-relaxed">Medical-aid submissions take days. No real-time adjudication status. Patients are left unsure of co-payments and your cash flow suffers.</p>
+        </div>
+        <div class="card-hover bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+          <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 mb-6">
+            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V21a2 2 0 01-2 2z" /></svg>
+          </div>
+          <h4 class="font-bold text-slate-900 mb-3 text-xl">Inventory guesswork</h4>
+          <p class="text-slate-600 leading-relaxed">Pharmacy stock tracked on paper or spreadsheets. NAPPI codes missing. Low-stock alerts missed. Expired batches slip through.</p>
+        </div>
+        <div class="card-hover bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+          <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-600 mb-6">
+            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+          </div>
+          <h4 class="font-bold text-slate-900 mb-3 text-xl">Practice admin overload</h4>
+          <p class="text-slate-600 leading-relaxed">Appointments, clinical notes, and billing live in separate systems. No unified dashboard for the practice owner to see the full picture.</p>
+        </div>
+      </div>
+
+      <div class="mt-16 flex items-center justify-center gap-6 text-xs text-slate-400 border-t border-slate-200 pt-8">
+        <span>Sources: SA medical-aid switch billing, POPIA Act 4 of 2013, NAPPI pharmacy coding</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Best Apps to Pair -->
+  <section id="best-apps" class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-slate-900 mb-6">Powerful alone, better together</h2>
+        <p class="text-lg text-slate-600 max-w-2xl mx-auto">Pair SynapseMed with the best South African health apps to extend your practice. MediGig for locum staffing and CardioTrack for cardiovascular remote patient monitoring.</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-12">
+        <!-- MediGig Card -->
+        <div class="card-hover bg-slate-900 rounded-3xl p-8 border border-slate-800 relative overflow-hidden">
+          <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-red-500/20 rounded-full blur-[80px]"></div>
+          <div class="relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 text-red-400 text-xs font-bold border border-red-500/30 mb-6">
+              <span class="w-2 h-2 rounded-full bg-red-400"></span>
+              Best for locum staffing
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-3">MediGig ZA</h3>
+            <p class="text-slate-300 leading-relaxed mb-6">
+              South African medical freelance marketplace — practices hire verified locum professionals, professionals pick up shifts. Escrow-protected payments, day rates set by the professional, and an AI copilot for matching and shift briefs.
+            </p>
+            <div class="space-y-3 mb-6 text-sm text-slate-300">
+              <div class="flex items-start gap-3">
+                <span class="text-red-400 mt-0.5">✓</span>
+                <span>Escrow-protected payments (5% service fee)</span>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-red-400 mt-0.5">✓</span>
+                <span>AI copilot for matching &amp; shift briefs</span>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-red-400 mt-0.5">✓</span>
+                <span>Profiles: initials-only, no photos, no in-app chat</span>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-red-400 mt-0.5">✓</span>
+                <span>Day rates set by the professional</span>
+              </div>
+            </div>
+            <div class="mb-6">
+              <div class="text-xs font-bold text-red-400 uppercase tracking-wider mb-1">Demo accounts</div>
+              <table class="w-full text-left text-xs text-slate-400">
+                <thead>
+                  <tr><th class="pb-1">Role</th><th class="pb-1">Email</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td class="pt-1 border-t border-slate-800 text-slate-300">Hirer (practice)</td><td class="pt-1 border-t border-slate-800 text-slate-300 font-mono">netcare@medigig.za</td></tr>
+                  <tr><td class="pt-1 border-t border-slate-800 text-slate-300">Professional</td><td class="pt-1 border-t border-slate-800 text-slate-300 font-mono">doctor@medigig.za</td></tr>
+                </tbody>
+              </table>
+              <p class="text-[10px] text-slate-500 mt-2">Password for all: demo1234</p>
+            </div>
+            <a href="https://github.com/beyondthens/MediGig" target="_blank" rel="noopener noreferrer" class="inline-block bg-white text-slate-900 hover:bg-slate-100 px-5 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-lg">
+              View on GitHub →
+            </a>
+          </div>
+        </div>
+
+        <!-- CardioTrack Card -->
+        <div class="card-hover bg-slate-900 rounded-3xl p-8 border border-slate-800 relative overflow-hidden">
+          <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-emerald-500/20 rounded-full blur-[80px]"></div>
+          <div class="relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/30 mb-6">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              Best for cardiology RPM
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-3">CardioTrack ZA</h3>
+            <p class="text-slate-300 leading-relaxed mb-6">
+              Class II Medical Software Telehealth Platform for South African cardiology practices, private hospitals, and remote chronic patient monitoring. Compliant with POPIA and SAHPRA digital health telemetry guidelines.
+            </p>
+            <div class="space-y-3 mb-6 text-sm text-slate-300">
+              <div class="flex items-start gap-3">
+                <span class="text-emerald-400 mt-0.5">✓</span>
+                <span>Real-time vitals: HR, BP, SpO2, glucose</span>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-emerald-400 mt-0.5">✓</span>
+                <span>AHA &amp; SA Heart clinical staging</span>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-emerald-400 mt-0.5">✓</span>
+                <span>PMS add-ons: Healthbridge, GoodX, Medprax</span>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-emerald-400 mt-0.5">✓</span>
+                <span>Android APK + PWA offline cache</span>
+              </div>
+            </div>
+            <div class="mb-6">
+              <div class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">Live links</div>
+              <table class="w-full text-left text-xs text-slate-400">
+                <thead>
+                  <tr><th class="pb-1">Resource</th><th class="pb-1">URL</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td class="pt-1 border-t border-slate-800 text-slate-300 font-mono">Cloud app</td><td class="pt-1 border-t border-slate-800 text-slate-300">cardiotrack-za.onrender.com</td></tr>
+                  <tr><td class="pt-1 border-t border-slate-800 text-slate-300 font-mono">APK download</td><td class="pt-1 border-t border-slate-800 text-slate-300">/api/download-apk</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <a href="https://github.com/beyondthens/CardioTrack" target="_blank" rel="noopener noreferrer" class="inline-block bg-white text-slate-900 hover:bg-slate-100 px-5 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-lg">
+              View on GitHub →
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-16 p-8 bg-slate-50 rounded-3xl border border-slate-200 text-center">
+        <h4 class="font-bold text-slate-900 mb-4 text-xl">One SynapseMed account, two powerful companions</h4>
+        <p class="text-slate-600 mb-6 max-w-xl mx-auto leading-relaxed">Connect MediGig to fill locum shifts instantly, and CardioTrack to monitor chronic cardiac patients remotely — all feeding into your SynapseMed practice dashboard.</p>
+        <a href="#early-access" class="synapse-gradient text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-sky-200 hover:scale-105 transition-transform">Request Early Access</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="py-24 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-slate-900 mb-6">Everything your practice needs</h2>
+        <p class="text-lg text-slate-600 max-w-2xl mx-auto">One platform for patient care, scheduling, clinical notes, inventory, and switch billing.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="card-hover bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-2xl mb-3">📋</div>
+          <h4 class="font-bold text-slate-900 mb-2">Patient &amp; appointment records</h4>
+          <p class="text-sm text-slate-600">Demographics, medical aid, appointments, and clinical notes in one patient timeline.</p>
+        </div>
+        <div class="card-hover bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-2xl mb-3">💊</div>
+          <h4 class="font-bold text-slate-900 mb-2">Pharmacy + NAPPI billing</h4>
+          <p class="text-sm text-slate-600">Dispense medicine on medical aid. Claims submitted through the switch adapter with stock deduction.</p>
+        </div>
+        <div class="card-hover bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-2xl mb-3">🧾</div>
+          <h4 class="font-bold text-slate-900 mb-2">Medical-aid switch billing</h4>
+          <p class="text-sm text-slate-600">Submit claims, check status, and reverse. Separate switch ledger from PMS subscription.</p>
+        </div>
+        <div class="card-hover bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-2xl mb-3">🤖</div>
+          <h4 class="font-bold text-slate-900 mb-2">AI automation (draft only)</h4>
+          <p class="text-sm text-slate-600">Draft notes, task reminders, and doctor-setup checklists — always requiring human review.</p>
+        </div>
+        <div class="card-hover bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-2xl mb-3">📦</div>
+          <h4 class="font-bold text-slate-900 mb-2">Inventory &amp; stock movements</h4>
+          <p class="text-sm text-slate-600">Track quantity, batch/expiry, NAPPI codes, and low-stock alerts per item.</p>
+        </div>
+        <div class="card-hover bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-2xl mb-3">🔐</div>
+          <h4 class="font-bold text-slate-900 mb-2">SA-compliant by design</h4>
+          <p class="text-sm text-slate-600">Tenant isolation, RBAC, audit events, and POPIA-aligned data handling.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 text-sky-700 text-xs font-medium border border-sky-100 mb-6">
+          Pricing from SynapseDigital &middot; Early access discounts
+        </div>
+        <h2 class="text-4xl font-bold text-slate-900 mb-6">Simple, transparent pricing</h2>
+        <p class="text-lg text-slate-600 max-w-2xl mx-auto">Founding practitioners get 40–52% off during early access. Billed annually.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <!-- Basic -->
+        <div class="card-hover bg-white p-8 rounded-3xl border border-slate-200 shadow-sm relative">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-tighter">
+            52% OFF
+          </div>
+          <h4 class="font-bold text-slate-900 text-lg mb-2">Basic</h4>
+          <div class="flex items-baseline gap-2 mb-6">
+            <span class="text-4xl font-black text-slate-900">R 450</span>
+            <span class="text-sm text-slate-400 line-through">R 950/mo</span>
+          </div>
+          <p class="text-xs text-slate-400 mb-6">Connect with verified locum shifts on mobile.</p>
+          <ul class="space-y-3 text-sm text-slate-500 mb-8">
+            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> Instant Mobile Shift Booking</li>
+            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> Verified locum network</li>
+            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> Mobile iOS / Android</li>
+          </ul>
+          <a href="#early-access" class="w-full py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-bold hover:bg-slate-100 transition-colors">Get started</a>
+        </div>
+
+        <!-- Professional (Featured) -->
+        <div class="card-hover bg-slate-900 rounded-3xl p-8 border border-slate-700 shadow-xl relative">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-sky-400 text-slate-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-tighter">
+            Most popular
+          </div>
+          <h4 class="font-bold text-white text-lg mb-2">Professional</h4>
+          <div class="flex items-baseline gap-2 mb-6">
+            <span class="text-4xl font-black text-white">R 890</span>
+            <span class="text-sm text-slate-400 line-through">R 1,450/mo</span>
+          </div>
+          <p class="text-xs text-slate-300 mb-6">Billed annually for founding practitioners.</p>
+          <ul class="space-y-3 text-sm text-slate-300 mb-8">
+            <li class="flex items-center gap-2"><span class="text-sky-400">✓</span> Full practice management</p>
+            <li class="flex items-center gap-2"><span class="text-sky-400">✓</span> Medical-aid switch billing</p>
+            <li class="flex items-center gap-2"><span class="text-sky-400">✓</span> Clinical notes &amp; AI drafts</p>
+            <li class="flex items-center gap-2"><span class="text-sky-400">✓</span> POPIA-aligned audit logs</p>
+          </ul>
+          <a href="#early-access" class="w-full py-3 rounded-xl bg-sky-600 text-white font-bold hover:bg-sky-700 shadow-lg shadow-sky-200 transition-colors">Get early access</a>
+        </div>
+
+        <!-- Instant Switch -->
+        <div class="card-hover bg-white p-8 rounded-3xl border border-slate-200 shadow-sm relative">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-tighter">
+            Instant Switch
+          </div>
+          <h4 class="font-bold text-slate-900 text-lg mb-2">Switch Module</h4>
+          <div class="flex items-baseline gap-2 mb-6">
+            <span class="text-4xl font-black text-slate-900">R 1,450</span>
+            <span class="text-xs text-slate-400">one-time</span>
+          </div>
+          <p class="text-xs text-slate-400 mb-6">Real-time adjudication &amp; claim reversal.</p>
+          <ul class="space-y-3 text-sm text-slate-500 mb-8">
+            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> Submit claims through SA switch</p>
+            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> Claim status &amp; reverse</p>
+            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> Separate switch invoices</p>
+          </ul>
+          <a href="#early-access" class="w-full py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-bold hover:bg-slate-100 transition-colors">Activate switch</a>
+        </div>
+      </div>
+
+      <div class="mt-12 text-center text-sm text-slate-500">
+        Pricing based on SynapseDigital (sysd-phi.vercel.app). Early access founding rates apply. Contact us for enterprise multi-practice pricing.
+      </div>
+    </div>
+  </section>
+
+  <!-- Company -->
+  <section id="company" class="py-24 bg-slate-900 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-white mb-6">Built by SynapseD (SynapseDigital)</h2>
+        <p class="text-lg text-slate-300 max-w-2xl mx-auto">SynapseDigital develops all SynapseMed platforms — practice management, RPM telehealth, and medical locum marketplaces — for South African healthcare.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8 text-center">
+        <div class="p-6 rounded-2xl bg-slate-800/50 border border-slate-700">
+          <div class="text-3xl mb-3">🏥</div>
+          <h4 class="font-bold text-white mb-2">SynapseMed PMS</h4>
+          <p class="text-slate-400 text-sm">Practice management &amp; medical-aid switch billing</p>
+        </div>
+        <div class="p-6 rounded-2xl bg-slate-800/50 border border-slate-700">
+          <div class="text-3xl mb-3">❤️</div>
+          <h4 class="font-bold text-white mb-2">CardioTrack ZA</h4>
+          <p class="text-slate-400 text-sm">Cardiovascular RPM &amp; telehealth platform</p>
+        </div>
+        <div class="p-6 rounded-2xl bg-slate-800/50 border border-slate-700">
+          <div class="text-3xl mb-3">👨‍⚕️</div>
+          <h4 class="font-bold text-white mb-2">MediGig ZA</h4>
+          <p class="text-slate-400 text-sm">Medical freelance locum marketplace</p>
+        </div>
+      </div>
+
+      <div class="mt-16 border-t border-slate-700 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 synapse-gradient rounded flex items-center justify-center text-white font-bold">S</div>
+          <span class="font-bold text-white text-lg">SynapseD (SynapseDigital)</span>
+        </div>
+        <div class="flex items-center gap-6 text-sm text-slate-400">
+          <a href="https://sysd-phi.vercel.app/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Company website</a>
+          <span>|</span>
+          <a href="https://github.com/beyondthens" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">GitHub org</a>
+          <span>|</span>
+          <a href="#early-access" class="hover:text-white transition-colors">Early access</a>
+        </div>
+        <div class="text-xs text-slate-500">SynapseMed &mdash; Early access. Synthetic data in mock mode. Not for clinical use until a live switch contract is approved.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Early Access CTA -->
+  <section id="early-access" class="py-24 bg-slate-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="bg-sky-900/50 rounded-3xl p-8 sm:p-12 border border-sky-200/30 text-center relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-pink-500"></div>
+        <h2 class="text-3xl font-bold text-white mb-4">Secure your founding practice spot</h2>
+        <p class="text-sky-200 mb-8 max-w-lg mx-auto leading-relaxed">Early access is limited. Founding practitioners lock in 40–52% off for life. Start with mock data, go live when your switch contract is approved.</p>
+        <div class="space-y-4">
+          <a href="https://sysd-phi.vercel.app/" target="_blank" rel="noopener noreferrer" class="w-full bg-white text-sky-900 px-8 py-4 rounded-2xl font-bold hover:bg-slate-100 transition-colors shadow-xl shadow-sky-200">
+            Visit SynapseDigital Company →
+          </a>
+          <a href="mailto:support@synapsemed.co.za" class="w-full border border-sky-400/50 text-sky-300 px-8 py-4 rounded-2xl font-medium hover:bg-sky-900/30 transition-colors">
+            Request early access invite
+          </a>
+        </div>
+        <p class="mt-8 text-xs text-sky-400">⚠️ Development environment — synthetic data only. Not for clinical use. All medical-aid claims simulated until a live switch contract is approved.</p>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

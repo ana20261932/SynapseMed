@@ -1,13 +1,19 @@
 const { app, BrowserWindow, ipcMain, Menu, Tray, shell, nativeTheme } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const Store = require('electron-store');
 
 const store = new Store();
 let mainWindow = null;
 let tray = null;
+let autoUpdater = null;
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
-const WEB_URL = process.env.SYNAPSEMED_WEB_URL || (isDev ? 'http://localhost:3000' : 'https://app.synapsemed.local');
+const WEB_URL = process.env.SYNAPSEMED_WEB_URL
+  ? process.env.SYNAPSEMED_WEB_URL
+  : (isDev ? 'http://localhost:3000' : 'https://synapsemed-za-prod.onrender.com');
+
+const RENDERER_HTML = path.join(__dirname, 'renderer.html');
 
 function createWindow() {
   const bounds = store.get('windowBounds', { width: 1400, height: 900 });
@@ -28,7 +34,19 @@ function createWindow() {
     backgroundColor: '#0f172a',
   });
 
-  mainWindow.loadURL(WEB_URL);
+  function loadWebApp() {
+    mainWindow.loadURL(WEB_URL).catch((err) => {
+      console.error(`Failed to load ${WEB_URL}:`, err.message);
+      mainWindow.loadFile(RENDERER_HTML);
+    });
+  }
+
+  loadWebApp();
+
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error(`Web app failed to load (${errorCode}): ${errorDescription}`);
+    mainWindow.loadFile(RENDERER_HTML);
+  });
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
@@ -167,6 +185,8 @@ app.whenReady().then(() => {
   createMenu();
   createTray();
 
+  checkForUpdates();
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
     else mainWindow?.show();
@@ -179,3 +199,22 @@ app.on('window-all-closed', () => {
 
 ipcMain.handle('get-app-version', () => app.getVersion());
 ipcMain.handle('get-platform', () => process.platform);
+
+ipcMain.handle('open-external', async (_event, url) => {
+  try {
+    await shell.openExternal(url);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+function checkForUpdates() {
+  if (isDev) return;
+  if (!autoUpdater) {
+    autoUpdater = require('electron-updater').autoUpdater;
+  }
+  autoUpdater.checkForUpdatesAndNotify().catch((err) => {
+    console.error('Auto-update check failed:', err.message);
+  });
+}

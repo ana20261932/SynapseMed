@@ -1,0 +1,16 @@
+SYNAPSEMED DESKTOP APPLICATION
+END USER LICENSE AGREEMENT
+
+1. License Grant
+SynapseMed grants you a limited, non-exclusive, non-transferable license to use
+the SynapseMed Desktop application for personal or internal business purposes.
+
+2. Restrictions
+You may not reverse engineer, decompile, or disassemble the application.
+
+3. Data & Privacy
+The application connects to the SynapseMed web service. Review the privacy
+policy at https://synapsemed.co.za/privacy.
+
+4. Disclaimer
+Provided "as is" without warranties. SynapseMed is not liable for damages.
